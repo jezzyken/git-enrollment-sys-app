@@ -23,5 +23,12 @@ export default {
 
   deleteTeacherLoad(id) {
     return api.delete(`/teacher-load/${id}`);
+  },
+
+  checkConflictSchedule(data) {
+    if (!data.professorId) {
+      throw new Error('Professor ID is required');
+    }
+    return api.post('/teacher-load/check-conflicts', data);
   }
 };

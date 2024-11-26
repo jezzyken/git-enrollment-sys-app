@@ -1,23 +1,20 @@
 <template>
   <v-container fluid>
-    <!-- Main Profile Card -->
     <v-card class="mb-4">
       <div class="profile-header"></div>
       <v-row no-gutters>
-        <!-- Profile Picture Section -->
         <v-col cols="12" md="3" class="text-center profile-picture-section">
           <div class="profile-picture-container">
             <v-avatar size="150" class="profile-avatar">
               <v-img
-                v-if="professor?.profilePicture"
-                :src="professor.profilePicture"
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0hukRkoCl4HSLWAfbr5mvuFRaF2DOhmJQtQ&s"
                 :alt="professorFullName"
               ></v-img>
-              <v-icon v-else size="80" color="grey lighten-1"
+              <!-- <v-icon v-else size="80" color="grey lighten-1"
                 >mdi-account</v-icon
-              >
+              > -->
             </v-avatar>
-            <v-btn
+            <!-- <v-btn
               small
               color="primary"
               dark
@@ -26,7 +23,7 @@
             >
               <v-icon small left>mdi-camera</v-icon>
               Change Photo
-            </v-btn>
+            </v-btn> -->
             <input
               type="file"
               ref="fileInput"
@@ -37,11 +34,9 @@
           </div>
         </v-col>
 
-        <!-- Professor Info Section -->
         <v-col cols="12" md="9">
           <v-card-text>
             <v-row>
-              <!-- Basic Information -->
               <v-col cols="12">
                 <div class="text-h5 font-weight-bold mb-2">
                   {{ professorFullName }}
@@ -51,7 +46,6 @@
                 </div>
               </v-col>
 
-              <!-- Contact & Personal Information -->
               <v-col cols="12" md="6">
                 <v-list dense>
                   <v-list-item>
@@ -174,7 +168,7 @@
             class="mr-2"
             style="min-width: 150px"
           ></v-select>
-          <v-btn color="primary" @click="openAddLoadDialog" class="ml-2">
+          <v-btn color="primary" @click="openAddLoadDialog()" class="ml-2">
             <v-icon left>mdi-plus</v-icon>
             Add Subject
           </v-btn>
@@ -183,17 +177,10 @@
 
       <v-data-table
         :headers="teachingLoadHeaders"
-        :items="currentTeachingLoad"
+        :items="currentTeachingLoad.flatMap((load) => load.subjects)"
         :loading="loading"
         class="mt-4"
       >
-        <template v-slot:item.subject.name="{ item }">
-          <div class="font-weight-medium">
-            {{ item.subject.DescriptiveTitle }}
-          </div>
-          <div class="caption grey--text">{{ item.subject.catNo }}</div>
-        </template>
-
         <template v-slot:item.schedule="{ item }">
           <div v-for="(sched, index) in item.schedule" :key="index">
             <div class="d-flex align-center">
@@ -207,8 +194,17 @@
           </div>
         </template>
 
+        <template v-slot:item.subject.name="{ item }">
+          <div class="font-weight-medium">
+            {{ item.subject?.DescriptiveTitle || "No Title" }}
+          </div>
+          <div class="caption grey--text">
+            {{ item.subject?.catNo || "No Code" }}
+          </div>
+        </template>
+
         <template v-slot:item.students="{ item }">
-          <v-chip small> {{ item.students.length }} students </v-chip>
+          <v-chip small> {{ (item.students || []).length }} students </v-chip>
         </template>
 
         <template v-slot:item.actions="{ item }">
@@ -217,9 +213,9 @@
             small
             color="primary"
             class="mr-2"
-            @click="viewStudents(item)"
+            @click="openAddLoadDialog(item)"
           >
-            <v-icon small>mdi-account-group</v-icon>
+            <v-icon small>mdi-pencil</v-icon>
           </v-btn>
           <v-btn icon small color="error" @click="confirmDeleteSubject(item)">
             <v-icon small>mdi-delete</v-icon>
@@ -228,10 +224,11 @@
       </v-data-table>
     </v-card>
 
-    <!-- Add Subject Load Dialog -->
     <v-dialog v-model="addLoadDialog" max-width="800px">
       <v-card>
-        <v-card-title class="headline">Add Subject Load</v-card-title>
+        <v-card-title class="headline">
+          {{ isEditing ? "Edit Subject Load" : "Add Subject Load" }}
+        </v-card-title>
         <v-form ref="loadForm" v-model="loadFormValid">
           <v-card-text>
             <v-row>
@@ -243,21 +240,25 @@
                   item-value="_id"
                   label="Subject"
                   :rules="rules.required"
+                  :disabled="isEditing"
                   outlined
                 >
                   <template v-slot:selection="{ item }">
-                    {{ item.DescriptiveTitle }}
-                    <span class="grey--text text-caption ml-2"
-                      >({{ item.catNo }})</span
+                    {{ item?.DescriptiveTitle || "Select Subject" }}
+                    <span
+                      class="grey--text text-caption ml-2"
+                      v-if="item?.catNo"
                     >
+                      ({{ item.catNo }})
+                    </span>
                   </template>
                   <template v-slot:item="{ item }">
                     <v-list-item-content>
                       <v-list-item-title>{{
-                        item.DescriptiveTitle
+                        item?.DescriptiveTitle || "No Title"
                       }}</v-list-item-title>
                       <v-list-item-subtitle>{{
-                        item.catNo
+                        item?.catNo || "No Code"
                       }}</v-list-item-subtitle>
                     </v-list-item-content>
                   </template>
@@ -349,9 +350,9 @@
               color="primary"
               :loading="loading"
               :disabled="!loadFormValid"
-              @click="submitNewLoad"
+              @click="submitLoad"
             >
-              Add Subject
+              {{ isEditing ? "Save Changes" : "Add Subject" }}
             </v-btn>
           </v-card-actions>
         </v-form>
@@ -393,7 +394,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="400">
       <v-card>
         <v-card-title class="headline error--text">
@@ -418,7 +418,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- Image Upload Dialog -->
     <v-dialog v-model="imageDialog" max-width="500px">
       <v-card>
         <v-card-title>Upload Profile Picture</v-card-title>
@@ -481,6 +480,8 @@ export default {
     selectedFile: null,
     subjectToDelete: null,
     selectedSubjectStudents: [],
+    isEditing: false,
+    editingId: null,
     newLoad: {
       subject: null,
       section: "",
@@ -509,6 +510,9 @@ export default {
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     rules: {
       required: [(v) => !!v || "This field is required"],
+      subject: [
+        (v) => (!!v && !!v.DescriptiveTitle) || "Please select a valid subject",
+      ],
     },
     snackbar: false,
     snackbarColor: "",
@@ -541,29 +545,51 @@ export default {
     },
 
     currentTeachingLoad() {
-      if (!this.teachingLoad) return [];
-      return this.teachingLoad.filter(
-        (load) =>
-          load.academicYear === this.selectedYear &&
-          load.semester === this.selectedSemester
-      );
-    },
+      if (!this.teachingLoad || !Array.isArray(this.teachingLoad)) return [];
 
+      return this.teachingLoad
+        .filter(
+          (load) =>
+            load.academicYear === this.selectedYear &&
+            load.semester === this.selectedSemester &&
+            load.status === "active"
+        )
+        .map((load) => ({
+          ...load,
+          subjects: (load.subjects || []).map((subj) => ({
+            ...subj,
+            subject: {
+              ...subj.subject,
+              DescriptiveTitle:
+                subj.subject?.DescriptiveTitle || "Untitled Subject",
+              catNo: subj.subject?.catNo || "No Code",
+            },
+            students: subj.students || [],
+          })),
+        }));
+    },
     currentSemesterUnits() {
       return this.currentTeachingLoad.reduce(
-        (total, load) => total + load.totalUnits,
+        (total, load) => total + (load.totalUnits || 0),
         0
       );
     },
 
     availableSubjects() {
-      if (!this.subjects) return [];
-      const currentSubjects = this.currentTeachingLoad.map(
-        (load) => load.subject._id
-      );
-      return this.subjects.filter(
-        (subject) => !currentSubjects.includes(subject._id)
-      );
+      if (!this.subjects || !Array.isArray(this.subjects)) return [];
+
+      const currentSubjectIds = this.currentTeachingLoad
+        ?.map((load) => load.subject?._id)
+        .filter((id) => id != null);
+
+      return this.subjects
+        .filter((subject) => subject && subject.DescriptiveTitle)
+        .filter((subject) => !currentSubjectIds.includes(subject._id))
+        .map((subject) => ({
+          ...subject,
+          DescriptiveTitle: subject.DescriptiveTitle || "Untitled Subject",
+          catNo: subject.catNo || "No Code",
+        }));
     },
   },
 
@@ -648,13 +674,35 @@ export default {
       this.$refs.fileInput.value = "";
     },
 
-    openAddLoadDialog() {
+    openAddLoadDialog(item = null) {
+      this.isEditing = Boolean(item);
+      if (item) {
+        this.editingId = item._id;
+        this.newLoad = {
+          subject: item.subject?._id,
+          section: item.section || "",
+          schedule: Array.isArray(item.schedule)
+            ? JSON.parse(JSON.stringify(item.schedule))
+            : [
+                {
+                  day: "",
+                  timeStart: "",
+                  timeEnd: "",
+                  room: "",
+                },
+              ],
+        };
+      } else {
+        this.editingId = null;
+        this.resetLoadForm();
+      }
       this.addLoadDialog = true;
-      this.resetLoadForm();
     },
 
     closeAddLoadDialog() {
       this.addLoadDialog = false;
+      this.isEditing = false;
+      this.editingId = null;
       this.resetLoadForm();
     },
 
@@ -689,35 +737,102 @@ export default {
       this.newLoad.schedule.splice(index, 1);
     },
 
-    async submitNewLoad() {
+    async submitLoad() {
       if (!this.$refs.loadForm.validate()) return;
 
       try {
-        await this.createTeacherLoad({
-          professor: this.professor._id,
+        console.log("Professor ID:", this.professor?._id); // Debug log
+
+        const payload = {
+          professor: this.professor?._id,
           academicYear: this.selectedYear,
           semester: this.selectedSemester,
-          subject: this.newLoad.subject,
-          section: this.newLoad.section,
-          schedule: this.newLoad.schedule,
-        });
+          subjects: [
+            {
+              subject: this.newLoad.subject,
+              section: this.newLoad.section,
+              schedule: this.newLoad.schedule.map((schedule) => ({
+                day: schedule.day,
+                timeStart: schedule.timeStart,
+                timeEnd: schedule.timeEnd,
+                room: schedule.room,
+              })),
+              students: [],
+            },
+          ],
+        };
 
-        this.showSnackbarMessage(
-          "Subject added to teaching load successfully",
-          "success"
+        const conflictResult = await this.$store.dispatch(
+          "teacherLoad/checkScheduleConflicts",
+          {
+            schedule: this.newLoad.schedule,
+            skipSubjectId: this.isEditing ? this.editingId : null,
+            professorId: payload.professor,
+          }
         );
+
+        if (conflictResult.hasConflict) {
+          const { day, existingTime, room, professor, isSameProfessor } =
+            conflictResult.conflictDetails;
+          let conflictMessage = isSameProfessor
+            ? `You already have a class scheduled on ${day} at ${existingTime}`
+            : `Room ${room} is already occupied on ${day} at ${existingTime} by ${professor.name?.firstName} ${professor.name?.surname}`;
+
+          this.showSnackbarMessage(conflictMessage, "error");
+          return;
+        }
+
+        if (!payload.professor || !payload.subjects[0].subject) {
+          throw new Error("Missing required fields");
+        }
+
+        if (this.isEditing) {
+          console.log(this.isEditing);
+          const teacherLoad = this.currentTeachingLoad.find((load) =>
+            load.subjects.some((s) => s._id === this.editingId)
+          );
+
+          if (!teacherLoad) {
+            throw new Error("Teacher load not found");
+          }
+
+          const updatedSubjects = teacherLoad.subjects.map((subject) =>
+            subject._id === this.editingId
+              ? { ...subject, ...payload.subjects[0] }
+              : subject
+          );
+
+          await this.updateTeacherLoad({
+            id: teacherLoad._id,
+            data: {
+              ...teacherLoad,
+              subjects: updatedSubjects,
+            },
+          });
+
+          this.showSnackbarMessage("Schedule updated successfully", "success");
+        } else {
+          await this.createTeacherLoad(payload);
+          this.showSnackbarMessage(
+            "Subject added to teaching load successfully",
+            "success"
+          );
+        }
+
         this.closeAddLoadDialog();
-        this.fetchTeachingLoad(this.professor._id);
+        await this.fetchProfessorTeacherLoads(this.professor._id);
       } catch (error) {
+        console.error("Error submitting load:", error);
         this.showSnackbarMessage(
-          error.response?.data?.message || "Failed to add subject",
+          error.response?.data?.message ||
+            `Failed to ${this.isEditing ? "update" : "add"} subject`,
           "error"
         );
       }
     },
 
     viewStudents(item) {
-      this.selectedSubjectStudents = item.students;
+      this.selectedSubjectStudents = item?.students || [];
       this.studentsDialog = true;
     },
 
@@ -726,13 +841,33 @@ export default {
       this.deleteDialog = true;
     },
 
-    async deleteSubject() {
+    async deleteSubject(subject) {
       try {
-        await this.deleteTeacherLoad(this.subjectToDelete._id);
+        const teacherLoad = this.currentTeachingLoad.find((load) =>
+          load.subjects.some((s) => s._id === subject._id)
+        );
+
+        if (!teacherLoad) {
+          throw new Error("Teacher load not found");
+        }
+
+        const updatedSubjects = teacherLoad.subjects.filter(
+          (s) => s._id !== subject._id
+        );
+
+        await this.updateTeacherLoad({
+          id: teacherLoad._id,
+          data: {
+            ...teacherLoad,
+            subjects: updatedSubjects,
+          },
+        });
+
         this.showSnackbarMessage("Subject removed successfully", "success");
         this.deleteDialog = false;
-        this.fetchTeachingLoad(this.professor._id);
+        await this.fetchProfessorTeacherLoads(this.professor._id);
       } catch (error) {
+        console.error("Error deleting subject:", error);
         this.showSnackbarMessage(
           error.response?.data?.message || "Failed to remove subject",
           "error"
@@ -748,14 +883,20 @@ export default {
 
     async loadInitialData() {
       const professorId = this.$route.params.id;
+      if (!professorId) {
+        this.showSnackbarMessage("Invalid professor ID", "error");
+        return;
+      }
+
       try {
         await Promise.all([
           this.fetchProfessor(professorId),
-          this.fetchProfessorTeacherLoads(professorId), 
+          this.fetchProfessorTeacherLoads(professorId),
           this.fetchSubjects(),
         ]);
         this.selectedYear = this.academicYears[0];
       } catch (error) {
+        console.error("Error loading data:", error);
         this.showSnackbarMessage("Failed to load data", "error");
       }
     },
@@ -770,7 +911,7 @@ export default {
 <style scoped>
 .profile-header {
   height: 100px;
-  background: linear-gradient(to right, #1976d2, #64b5f6);
+  background: linear-gradient(to right, #a52a2a, #d2691e);
 }
 
 .profile-picture-section {

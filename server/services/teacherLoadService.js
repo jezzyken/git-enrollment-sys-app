@@ -3,8 +3,6 @@ const AppError = require("../utils/appError");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 exports.createTeacherLoad = async (data) => {
-
-  console.log(data)
   const newTeacherLoad = await TeacherLoad.create(data);
   return await newTeacherLoad.populate([
     "professor",
@@ -22,7 +20,6 @@ exports.getAllTeacherLoads = async (query) => {
 };
 
 exports.getTeacherLoads = async (id) => {
-
   const teacherLoad = await TeacherLoad.find({
     professor: new ObjectId(id),
   }).populate(["professor", "subjects.subject", "subjects.students"]);
@@ -47,6 +44,7 @@ exports.getTeacherLoad = async (id) => {
 };
 
 exports.updateTeacherLoad = async (id, data) => {
+  console.log(data);
   const teacherLoad = await TeacherLoad.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
