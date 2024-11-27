@@ -11,6 +11,7 @@ import professors from "./modules/professors";
 import teacherLoad from "./modules/teacherLoad";
 import schedules from "./modules/schedules";
 import reports from "./modules/reports";
+import enrollments from "./modules/enrollments";
 
 Vue.use(Vuex);
 
@@ -27,5 +28,6 @@ export default new Vuex.Store({
     professors,
     schedules,
     reports,
+    enrollments,
   },
 });

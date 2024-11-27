@@ -9,6 +9,10 @@ router
 
 router.post("/check-conflicts", teacherLoadController.checkScheduleConflicts);
 
+router.get("/available-subjects", teacherLoadController.getAvailableSubjects);
+
+router.patch("/:id/students", teacherLoadController.updateTeacherLoadStudents);
+
 router
   .route("/:id")
   .get(teacherLoadController.getTeacherLoad)

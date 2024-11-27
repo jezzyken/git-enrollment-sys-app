@@ -12,6 +12,8 @@ exports.createTeacherLoad = async (data) => {
 };
 
 exports.getAllTeacherLoads = async (query) => {
+
+  console.log({query})
   return await TeacherLoad.find(query).populate([
     "professor",
     "subjects.subject",

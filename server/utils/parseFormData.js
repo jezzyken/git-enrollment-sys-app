@@ -8,7 +8,7 @@ const parseJsonField = (field) => {
 
 exports.parseStudentData = (body, file) => {
   const studentData = {
-    studentId: body.studentId,
+    studentId: parseJsonField(body.studentId),
     name: parseJsonField(body.name),
     course: body.course,
     homeAddress: body.homeAddress,

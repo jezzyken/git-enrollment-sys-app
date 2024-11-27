@@ -1,6 +1,7 @@
 const Enrollment = require("../models/Enrollment");
 const StudentProfile = require("../models/StudentProfile");
 const AppError = require("../utils/appError");
+const mongoose = require("mongoose")
 
 exports.enrollNewStudent = async (studentData, enrollmentData) => {
   const session = await mongoose.startSession();

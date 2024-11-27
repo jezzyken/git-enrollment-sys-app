@@ -129,6 +129,7 @@ export default {
     mini: false,
     menuItems: [
       { title: "Dashboard", icon: "mdi-view-dashboard", to: "/dashboard" },
+      { title: "Enrollment", icon: "mdi-view-dashboard", to: "/enrollment" },
       {
         title: "Academics",
         icon: "mdi-school",

@@ -93,8 +93,14 @@
                   <v-card-title class="headline primary white--text mb-5 pa-2">
                     Personal Information
                   </v-card-title>
+
                   <v-card-text>
-                    <v-row>
+                    <v-row
+                      v-if="
+                        $route.query.type === 'existing' ||
+                        $route.params.action === 'edit'
+                      "
+                    >
                       <v-col cols="12" md="3">
                         <v-text-field
                           v-model="formData.studentId"
@@ -155,15 +161,19 @@
 
                     <v-row>
                       <v-col cols="12" md="6">
-                        <v-text-field
+                        <v-select
                           v-model="formData.course"
+                          :items="courseOptions"
+                          item-text="courseName"
+                          item-value="_id"
                           label="Course*"
                           outlined
                           dense
                           prepend-inner-icon="mdi-school"
                           :error-messages="getErrorMessages('course')"
                           @input="clearError('course')"
-                        ></v-text-field>
+                          required
+                        ></v-select>
                       </v-col>
                       <v-col cols="12" md="6">
                         <v-text-field
@@ -693,7 +703,7 @@
                           <div class="info-item">
                             <div class="info-label">Student ID</div>
                             <div class="info-value">
-                              {{ formData.studentId}}
+                              {{ formData.studentId }}
                             </div>
                           </div>
                         </v-col>
@@ -1152,9 +1162,9 @@ export default {
       "Senior High",
       "College",
     ],
-
+    courseOptions: [],
     formData: {
-      studentId: "",
+      studentId: null,
       name: {
         surname: "",
         firstName: "",
@@ -1236,11 +1246,12 @@ export default {
   },
 
   async created() {
-    const studentId = this.$route.params.studentId;
+    const studentId = this.$route.query.studentId;
 
-    if (studentId) {
-      await this.loadExistingProfile(studentId);
-    }
+    await Promise.all([
+      this.loadCourseOptions(),
+      studentId ? this.loadExistingProfile(studentId) : Promise.resolve(),
+    ]);
   },
 
   methods: {
@@ -1249,6 +1260,7 @@ export default {
       "fetchStudent",
       "updateStudent",
     ]),
+    ...mapActions("courses", ["fetchCourses"]),
 
     formatEducationLevel(key) {
       switch (key) {
@@ -1322,38 +1334,33 @@ export default {
       try {
         const submitData = {
           ...this.formData,
-          dateOfBirth: this.formData.dateOfBirth
+          dateOfBirth: this.formData?.dateOfBirth
             ? new Date(this.formData.dateOfBirth).toISOString()
             : null,
-          image: this.imagePreview,
+          image: this.imagePreview || "",
         };
 
-        const studentId = this.$route.params.studentId;
-        let response;
+        const studentId = this.$route.query.studentId;
 
         if (studentId) {
-          // Update existing student
-          response = await this.updateStudent({
+          await this.updateStudent({
             id: studentId,
             studentData: submitData,
           });
           this.showMessage("Profile updated successfully!");
         } else {
-          // Create new student
-          response = await this.createStudent(submitData);
+          await this.createStudent(submitData);
           this.showMessage("Profile created successfully!");
         }
 
         this.$router.push({
           name: "StudentList",
-          query: {
-            success: studentId ? "profile-updated" : "profile-created",
-          },
+          query: { success: studentId ? "profile-updated" : "profile-created" },
         });
       } catch (error) {
         console.error("Error submitting form:", error);
         this.showMessage(
-          error.response?.data?.message ||
+          error?.response?.data?.message ||
             "Error saving profile. Please try again.",
           "error"
         );
@@ -1375,13 +1382,56 @@ export default {
       try {
         await this.fetchStudent(id);
         if (this.currentStudent) {
-          this.formData = { ...this.currentStudent };
-          if (this.currentStudent.image) {
+          this.formData = this.mergeWithDefaults(this.currentStudent);
+          if (this.currentStudent?.image) {
             this.imagePreview = this.currentStudent.image;
           }
         }
       } catch (error) {
         this.showMessage("Error loading student profile", "error");
+      }
+    },
+    mergeWithDefaults(data) {
+      const defaults = this.$options.data().formData;
+      return {
+        ...defaults,
+        ...data,
+        name: { ...defaults.name, ...data?.name },
+        personalInfo: { ...defaults.personalInfo, ...data?.personalInfo },
+        familyInfo: { ...defaults.familyInfo, ...data?.familyInfo },
+        contactInfo: { ...defaults.contactInfo, ...data?.contactInfo },
+        pwd: { ...defaults.pwd, ...data?.pwd },
+        emergencyContact: {
+          ...defaults.emergencyContact,
+          ...data?.emergencyContact,
+        },
+        educationHistory: {
+          elementary: {
+            ...defaults.educationHistory.elementary,
+            ...data?.educationHistory?.elementary,
+          },
+          juniorHigh: {
+            ...defaults.educationHistory.juniorHigh,
+            ...data?.educationHistory?.juniorHigh,
+          },
+          seniorHigh: {
+            ...defaults.educationHistory.seniorHigh,
+            ...data?.educationHistory?.seniorHigh,
+          },
+        },
+        lastSchoolAttended: {
+          ...defaults.lastSchoolAttended,
+          ...data?.lastSchoolAttended,
+        },
+      };
+    },
+
+    async loadCourseOptions() {
+      try {
+        await this.fetchCourses();
+        this.courseOptions = this.$store.state.courses.courses;
+      } catch (error) {
+        this.showMessage("Failed to load courses", "error");
       }
     },
   },

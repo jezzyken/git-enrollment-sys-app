@@ -96,6 +96,22 @@ export default {
       }
     },
 
+    async fetchAvailableSubjects({ commit }, { academicYear, semester }) {
+      commit("SET_LOADING", true);
+      try {
+        const response = await teacherLoadService.getAvailableSubjects(
+          academicYear,
+          semester
+        );
+        return response.data.data.subjects;
+      } catch (error) {
+        commit("SET_ERROR", error.response?.data?.message);
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
     async createTeacherLoad({ commit }, loadData) {
       commit("SET_LOADING", true);
       try {
@@ -128,6 +144,19 @@ export default {
         throw error;
       } finally {
         commit("SET_LOADING", false);
+      }
+    },
+
+    async updateTeacherLoadStudents({ commit }, { teacherLoadId, data }) {
+      try {
+        const response = await teacherLoadService.updateTeacherLoadStudents(
+          teacherLoadId,
+          data
+        );
+        return response.data;
+      } catch (error) {
+        console.error("Error updating teacher load students:", error);
+        throw error;
       }
     },
 

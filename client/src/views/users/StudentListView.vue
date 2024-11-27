@@ -36,7 +36,6 @@
                   <v-select
                     v-model="filters.course"
                     label="Course"
-                    :items="courses"
                     clearable
                     dense
                     outlined
@@ -95,23 +94,35 @@
                 </v-list>
               </v-menu>
 
-              <v-btn
-                color="primary"
-                :to="{
-                  name: 'StudentForm',
-                  params: { action: 'add' },
-                }"
-              >
-                <v-icon left>mdi-plus</v-icon>
-                New Student
-              </v-btn>
+              <v-menu offset-y>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn color="primary" v-bind="attrs" v-on="on">
+                    <v-icon left>mdi-plus</v-icon>
+                    Add Student
+                  </v-btn>
+                </template>
+
+                <v-list>
+                  <v-list-item
+                    v-for="type in ['New', 'Existing']"
+                    :key="type"
+                    :to="{
+                      name: 'StudentForm',
+                      params: { action: 'add' },
+                      query: { type: type.toLowerCase() },
+                    }"
+                  >
+                    <v-list-item-title>{{ type }} Student</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </div>
           </div>
         </v-col>
       </v-row>
     </v-card>
 
-      <v-card>
+    <v-card>
       <v-data-table
         :headers="headers"
         :items="students"
@@ -142,20 +153,34 @@
 
         <template v-slot:item.course="{ item }">
           <v-chip small outlined color="primary">
-            {{ item.course }}
+            {{ item.course.courseCode }}
+          </v-chip>
+        </template>
+
+        <template v-slot:item.enrollmentStatus="{ item }">
+          <v-chip
+            :color="getStatusColor(item.enrollments?.[0]?.enrollmentStatus)"
+            small
+            class="text-capitalize"
+          >
+            {{ item.enrollments?.[0]?.enrollmentStatus || "pending" }}
           </v-chip>
         </template>
 
         <template v-slot:item.actions="{ item }">
           <div class="d-flex justify-end">
+            <v-btn icon small color="info" @click="selectStudent(item)">
+              <v-icon small>mdi-eye</v-icon>
+            </v-btn>
+
             <v-btn
               icon
               small
               color="primary"
-              class="mr-2"
               :to="{
                 name: 'StudentForm',
-                params: { studentId: item._id, action: 'edit' },
+                params: { action: 'edit' },
+                query: { studentId: item._id },
               }"
             >
               <v-icon small>mdi-pencil</v-icon>
@@ -277,6 +302,11 @@ export default {
         sortable: true,
       },
       {
+        text: "Status",
+        value: "enrollmentStatus",
+        sortable: true,
+      },
+      {
         text: "Actions",
         value: "actions",
         sortable: false,
@@ -297,6 +327,15 @@ export default {
 
   methods: {
     ...mapActions("students", ["fetchStudents", "deleteStudent"]),
+
+    getStatusColor(status) {
+      const colors = {
+        pending: "warning",
+        evaluated: "info",
+        enrolled: "success",
+      };
+      return colors[status] || "warning";
+    },
 
     resetFilters() {
       this.filters = {
@@ -353,7 +392,12 @@ export default {
       await this.fetchStudents();
     },
 
-
+    selectStudent(item) {
+      this.$router.push({
+        name: "Student Profile",
+        params: { id: item._id },
+      });
+    },
   },
 
   created() {

@@ -56,15 +56,20 @@ const routes = [
         component: () => import("@/views/academics/ClassScheduleView.vue"),
       },
       {
-        path: '/students',
-        name: 'StudentList',
-        component: () => import('@/views/users/StudentListView.vue')
+        path: "/students",
+        name: "StudentList",
+        component: () => import("@/views/users/StudentListView.vue"),
       },
       {
-        path: '/students/:studentId/:action(add|edit|view)',
-        name: 'StudentForm',
-        component: () => import('@/views/users/StudentFormView.vue'),
-        props: true
+        path: "/students/:action(add|edit|view)",
+        name: "StudentForm",
+        component: () => import("@/views/users/StudentFormView.vue"),
+        props: true,
+      },
+      {
+        path: "/students/:id/profile",
+        name: "Student Profile",
+        component: () => import("@/views/users/StudentProfile.vue"),
       },
       {
         path: "/teachers",
@@ -80,6 +85,11 @@ const routes = [
         path: "/professor/:id/profile",
         name: "Teacher Profile",
         component: () => import("@/views/users/ProfessorProfile.vue"),
+      },
+      {
+        path: "/enrollment",
+        name: "Enrollment",
+        component: () => import("@/views/enrollment/EnrollmentForm.vue"),
       },
       {
         path: "/reports",

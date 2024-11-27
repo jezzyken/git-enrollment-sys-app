@@ -7,8 +7,8 @@ const StudentProfileSchema = new Schema(
   {
     studentId: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
     },
     name: {
       surname: { type: String, required: true },
@@ -76,6 +76,13 @@ const StudentProfileSchema = new Schema(
       enum: ["active", "inactive", "suspended", "graduated"],
       default: "active",
     },
+    requirements: {
+      form137: { type: Boolean, default: false },
+      goodMoral: { type: Boolean, default: false },
+      birthCertificate: { type: Boolean, default: false },
+      pictures: { type: Boolean, default: false },
+      transcriptOfRecords: { type: Boolean, default: false },
+    },
     role: {
       type: String,
       default: "student",
@@ -91,9 +98,20 @@ const StudentProfileSchema = new Schema(
   }
 );
 
+async function generateStudentId() {
+  const currentYear = new Date().getFullYear().toString().substr(-2);
+  const sequence = (await StudentProfile.countDocuments()) + 1;
+  return `${currentYear}-${sequence.toString().padStart(4, "0")}`;
+}
+
 StudentProfileSchema.pre("save", async function (next) {
-  if (this.isNew) {
-    try {
+  try {
+    if (!this.studentId) {
+      this.studentId = await generateStudentId();
+      console.log(this.studentId);
+    }
+
+    if (this.isNew) {
       let studentRole = await Role.findOne({ name: "student" });
       if (!studentRole) {
         studentRole = await Role.create({
@@ -103,12 +121,28 @@ StudentProfileSchema.pre("save", async function (next) {
         });
       }
       this.role = "student";
-    } catch (error) {
-      return next(error);
     }
+  } catch (error) {
+    return next(error);
   }
   next();
 });
+
+StudentProfileSchema.virtual("enrollments", {
+  ref: "Enrollment",
+  localField: "_id",
+  foreignField: "student",
+});
+
+StudentProfileSchema.virtual("fullName").get(function () {
+  const { firstName, middleName, surname, nameExtension } = this.name;
+  const middle = middleName ? ` ${middleName} ` : " ";
+  const extension = nameExtension ? ` ${nameExtension}` : "";
+  return `${firstName}${middle}${surname}${extension}`;
+});
+
+StudentProfileSchema.set("toJSON", { virtuals: true });
+StudentProfileSchema.set("toObject", { virtuals: true });
 
 const StudentProfile = mongoose.model("StudentProfile", StudentProfileSchema);
 

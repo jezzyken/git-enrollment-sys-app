@@ -1,8 +1,8 @@
-import api from './api';
+import api from "./api";
 
 export default {
   getAllTeacherLoads(query = {}) {
-    return api.get('/teacher-load', { params: query });
+    return api.get("/teacher-load", { params: query });
   },
 
   getTeacherLoadsForProfessor(professorId) {
@@ -14,7 +14,7 @@ export default {
   },
 
   createTeacherLoad(loadData) {
-    return api.post('/teacher-load', loadData);
+    return api.post("/teacher-load", loadData);
   },
 
   updateTeacherLoad(id, loadData) {
@@ -27,8 +27,16 @@ export default {
 
   checkConflictSchedule(data) {
     if (!data.professorId) {
-      throw new Error('Professor ID is required');
+      throw new Error("Professor ID is required");
     }
-    return api.post('/teacher-load/check-conflicts', data);
+    return api.post("/teacher-load/check-conflicts", data);
+  },
+  getAvailableSubjects(academicYear, semester) {
+    return api.get("/teacher-load/available-subjects", {
+      params: { academicYear, semester },
+    });
+  },
+  updateTeacherLoadStudents(teacherLoadId, data) {
+    return api.patch(`/teacher-load/${teacherLoadId}/students`, data);
   }
 };

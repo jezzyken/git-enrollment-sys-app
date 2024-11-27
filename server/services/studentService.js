@@ -1,6 +1,6 @@
 const StudentProfile = require("../models/StudentProfile");
 const AppError = require("../utils/appError");
-const { Readable } = require('stream');
+const { Readable } = require("stream");
 
 const bufferToStream = (buffer) => {
   return Readable.from(buffer);
@@ -13,14 +13,14 @@ const uploadImageToCloudinary = async (imageBuffer) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'student-profiles',
+        folder: "student-profiles",
       },
       (error, result) => {
         if (error) reject(error);
         else resolve(result);
       }
     );
-    
+
     stream.pipe(uploadStream);
   });
 };
@@ -30,17 +30,17 @@ const deleteImageFromCloudinary = async (imageUrl) => {
 
   try {
     // Extract public_id from the Cloudinary URL
-    const publicId = imageUrl.split('/').slice(-1)[0].split('.')[0];
-    await cloudinary.uploader.destroy('student-profiles/' + publicId);
+    const publicId = imageUrl.split("/").slice(-1)[0].split(".")[0];
+    await cloudinary.uploader.destroy("student-profiles/" + publicId);
   } catch (error) {
-    console.error('Error deleting image from Cloudinary:', error);
+    console.error("Error deleting image from Cloudinary:", error);
   }
 };
 
 exports.createStudent = async (studentData, imageBuffer) => {
   try {
     let imageUrl;
-    
+
     if (imageBuffer) {
       const result = await uploadImageToCloudinary(imageBuffer);
       imageUrl = result.secure_url;
@@ -48,7 +48,7 @@ exports.createStudent = async (studentData, imageBuffer) => {
 
     const studentProfile = await StudentProfile.create({
       ...studentData,
-      image: imageUrl || undefined
+      image: imageUrl || undefined,
     });
 
     return studentProfile;
@@ -58,7 +58,13 @@ exports.createStudent = async (studentData, imageBuffer) => {
 };
 
 exports.getAllStudents = async (query) => {
-  return await StudentProfile.find(query);
+  return await StudentProfile.find(query)
+    .populate("course")
+    .populate({
+      path: "enrollments",
+      select: "enrollmentStatus academicYear semester",
+      options: { sort: { createdAt: -1 } },
+    });
 };
 
 exports.getStudent = async (id) => {
@@ -91,7 +97,7 @@ exports.updateStudent = async (id, updateData, imageBuffer) => {
       id,
       {
         ...updateData,
-        image: imageUrl
+        image: imageUrl,
       },
       {
         new: true,

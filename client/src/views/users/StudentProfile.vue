@@ -741,6 +741,8 @@ export default {
       if (!this.$refs.loadForm.validate()) return;
 
       try {
+        console.log("Professor ID:", this.professor?._id); // Debug log
+
         const payload = {
           professor: this.professor?._id,
           academicYear: this.selectedYear,

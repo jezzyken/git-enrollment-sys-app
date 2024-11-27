@@ -61,13 +61,17 @@ const EnrollmentSchema = new Schema(
     },
     enrollmentStatus: {
       type: String,
-      enum: ["pending", "evaluated", "enrolled"],
+      enum: ["pending", "enrolled", "withdrawn", "completed"],
       default: "pending",
     },
-    registrationDate: {
-      type: Date,
-      default: Date.now(),
+    requirements: {
+      form137: { type: Boolean, default: false },
+      goodMoral: { type: Boolean, default: false },
+      birthCertificate: { type: Boolean, default: false },
+      pictures: { type: Boolean, default: false },
+      transcriptOfRecords: { type: Boolean, default: false },
     },
+    remarks: String,
   },
   {
     timestamps: true,
