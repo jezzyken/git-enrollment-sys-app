@@ -46,7 +46,7 @@
                   <v-radio label="Existing Student" value="old"></v-radio>
                 </v-radio-group>
 
-                <v-expand-transition>
+                <!-- <v-expand-transition>
                   <div v-if="enrollmentForm.enrollmentType === 'old'">
                     <v-autocomplete
                       v-model="selectedStudent"
@@ -60,6 +60,85 @@
                       required
                       @change="handleStudentSelect"
                     ></v-autocomplete>
+                  </div>
+                </v-expand-transition> -->
+
+                <v-expand-transition>
+                  <div v-if="enrollmentForm.enrollmentType === 'old'">
+                    <v-card>
+                      <div class="d-flex justify-end pa-4">
+                        <v-text-field
+                          v-model="search"
+                          prepend-inner-icon="mdi-magnify"
+                          placeholder="Search students..."
+                          hide-details
+                          single-line
+                          filled
+                          rounded
+                          dense
+                          class="search-field"
+                          style="max-width: 400px"
+                          @keyup.enter="handleSearch"
+                        ></v-text-field>
+                      </div>
+
+                      <v-data-table
+                        :headers="studentHeaders"
+                        :items="students"
+                        :search="search"
+                        :loading="loading"
+                        single-select
+                        show-select
+                        @item-selected="handleStudentSelect"
+                      >
+                        <template v-slot:item.name="{ item }">
+                          <div class="d-flex align-center py-2">
+                            <v-avatar
+                              color="primary lighten-4"
+                              size="40"
+                              class="mr-3"
+                            >
+                              <span class="primary--text font-weight-medium">
+                                {{ item.name.firstName[0]
+                                }}{{ item.name.surname[0] }}
+                              </span>
+                            </v-avatar>
+                            <div class="font-weight-medium">
+                              {{ item.name.surname }}, {{ item.name.firstName }}
+                              {{
+                                item.name.middleName
+                                  ? item.name.middleName[0] + "."
+                                  : ""
+                              }}
+                              {{ item.name.nameExtension || "" }}
+                            </div>
+                          </div>
+                        </template>
+
+                        <template v-slot:item.course="{ item }">
+                          <v-chip small outlined color="primary">
+                            {{ item.course.courseCode }}
+                          </v-chip>
+                        </template>
+                        <!-- 
+                        <template v-slot:item.enrollmentStatus="{ item }">
+                          <v-chip
+                            :color="
+                              getStatusColor(
+                                item.enrollments?.[0]?.enrollmentStatus
+                              )
+                            "
+                            small
+                            class="text-capitalize"
+                          >
+                            {{
+                              item.enrollments?.[0]?.enrollmentStatus ||
+                              "pending"
+                            }}
+                          </v-chip>
+                        </template> -->
+                      </v-data-table>
+                    </v-card>
                   </div>
                 </v-expand-transition>
               </v-card-text>
@@ -705,22 +784,52 @@
         </v-card-actions>
       </v-card>
     </v-form>
+
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="snackbar.timeout"
+    >
+      {{ snackbar.text }}
+      <template v-slot:action="{ attrs }">
+        <v-btn text v-bind="attrs" @click="snackbar.show = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script>
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
+import students from "@/store/modules/students";
 
 export default {
   name: "EnrollmentStepper",
   data: () => ({
+    search: "",
+    studentHeaders: [
+      {
+        text: "Name",
+        value: "name",
+        template: "item.name",
+      },
+      { text: "Student ID", value: "studentId" },
+      {
+        text: "Course",
+        value: "course",
+        template: "item.course",
+      },
+      // { text: "Status", value: "enrollmentStatus" },
+    ],
     dateMenu: false,
     currentStep: 1,
     loading: false,
     confirmEnrollment: false,
     selectedStudent: null,
     academicYears: ["2023-2024", "2024-2025", "2025-2026"],
+
     studentForm: {
       name: {
         surname: "",
@@ -752,6 +861,12 @@ export default {
     availableSubjects: [],
     subjects: [],
     selectedSubjects: [],
+    snackbar: {
+      show: false,
+      text: "",
+      color: "success",
+      timeout: 5000,
+    },
   }),
 
   computed: {
@@ -793,6 +908,15 @@ export default {
       "enrollContinuingStudent",
     ]),
     ...mapActions("teacherLoad", ["updateTeacherLoadStudents"]),
+
+    getStatusColor(status) {
+      const colors = {
+        pending: "warning",
+        evaluated: "info",
+        enrolled: "success",
+      };
+      return colors[status] || "warning";
+    },
 
     addSubject() {
       const selected = this.formattedSubjects.find(
@@ -862,7 +986,9 @@ export default {
       return true;
     },
 
-    handleStudentSelect() {
+    handleStudentSelect(item) {
+      this.selectedStudent = item.item._id;
+
       if (this.selectedStudent) {
         const student = this.students.find(
           (s) => s._id === this.selectedStudent
@@ -976,9 +1102,15 @@ export default {
         }
       } catch (error) {
         console.error("Error submitting enrollment:", error);
+        this.showMessage(error.response.data.message);
       } finally {
         this.loading = false;
       }
+    },
+    showMessage(text, color = "success") {
+      this.snackbar.text = text;
+      this.snackbar.color = color;
+      this.snackbar.show = true;
     },
   },
 
