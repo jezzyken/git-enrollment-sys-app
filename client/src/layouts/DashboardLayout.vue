@@ -17,7 +17,7 @@
           </v-list-item-icon>
           <v-list-item-content v-if="!mini">
             <v-list-item-title class="white--text"
-              >GIT Attendance</v-list-item-title
+              >GIT Enrollment System</v-list-item-title
             >
           </v-list-item-content>
         </v-list-item>
@@ -86,7 +86,7 @@
         color="#a52a2a"
       ></v-app-bar-nav-icon>
       <v-toolbar-title class="brown--text text--darken-4"
-        >GIT Attendance System</v-toolbar-title
+        >GIT Enrollment System</v-toolbar-title
       >
       <v-spacer></v-spacer>
       <v-menu offset-y>

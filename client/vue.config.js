@@ -6,7 +6,7 @@ module.exports = defineConfig({
   ],
   chainWebpack: config => {
     config.plugin('html').tap(args => {
-      args[0].title = "GIT Attendance System";
+      args[0].title = "GIT Enrollment System";
       return args;
     });
   },

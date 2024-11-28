@@ -16,7 +16,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="6" md="3">
+      <!-- <v-col cols="12" sm="6" md="3">
         <v-card class="mx-auto" color="#d2691e" dark>
           <v-card-text>
             <div class="text-h4 mb-2">{{ totalTeachers }}</div>
@@ -44,7 +44,7 @@
             <v-icon large class="dashboard-icon">mdi-account-check</v-icon>
           </v-card-text>
         </v-card>
-      </v-col>
+      </v-col> -->
     </v-row>
 
     <!-- Charts Row -->
