@@ -935,9 +935,6 @@ export default {
             enrollmentData,
           });
 
-          console.log(response.data);
-          console.log(response.status);
-
           if (response.status === "success") {
             await Promise.all(
               this.selectedSubjects.map((subject) =>

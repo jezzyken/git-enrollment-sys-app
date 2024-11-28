@@ -55,6 +55,7 @@ exports.getAvailableSubjects = catchAsync(async (req, res) => {
 
 exports.getTeacherLoads = catchAsync(async (req, res) => {
   const teacherLoads = await teacherLoadService.getTeacherLoads(req.params.id);
+  console.log(teacherLoads)
   res.status(200).json({
     status: "success",
     data: { teacherLoads },
@@ -77,6 +78,12 @@ exports.updateTeacherLoadStudents = async (req, res) => {
     const { subjectId, studentId, action } = req.body;
     const teacherLoadResults = await TeacherLoad.findById(req.params.id);
 
+    console.log(teacherLoadResults)
+    console.log(req.params.id)
+    console.log(req.body)
+
+
+
     if (!teacherLoadResults) {
       return res.status(404).json({
         success: false,
@@ -85,7 +92,7 @@ exports.updateTeacherLoadStudents = async (req, res) => {
     }
 
     const subjectIndex = teacherLoadResults.subjects.findIndex(
-      (s) => s.subject.toString() === subjectId
+      (s) => s._id.toString() === subjectId
     );
 
     if (subjectIndex === -1) {

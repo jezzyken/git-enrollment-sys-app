@@ -1,7 +1,7 @@
 const Enrollment = require("../models/Enrollment");
 const StudentProfile = require("../models/StudentProfile");
 const AppError = require("../utils/appError");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 exports.enrollNewStudent = async (studentData, enrollmentData) => {
   const session = await mongoose.startSession();
@@ -32,6 +32,7 @@ exports.enrollNewStudent = async (studentData, enrollmentData) => {
 };
 
 exports.enrollContinuingStudent = async (studentId, enrollmentData) => {
+  console.log(studentId, enrollmentData);
   const student = await StudentProfile.findById(studentId);
   if (!student) {
     throw new AppError("Student not found", 404);
@@ -50,7 +51,7 @@ exports.enrollContinuingStudent = async (studentId, enrollmentData) => {
   const enrollment = await Enrollment.create({
     ...enrollmentData,
     student: studentId,
-    enrollmentType: "continuing",
+    enrollmentType: "old",
   });
 
   return { student, enrollment };

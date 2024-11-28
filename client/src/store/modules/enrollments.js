@@ -61,6 +61,7 @@ export default {
     },
 
     async enrollContinuingStudent({ dispatch }, { studentId, enrollmentData }) {
+      console.log(studentId, enrollmentData )
       try {
         const response = await enrollmentService.enrollContinuingStudent({
           studentId,

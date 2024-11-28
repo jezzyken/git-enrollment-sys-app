@@ -204,7 +204,9 @@
         </template>
 
         <template v-slot:item.students="{ item }">
-          <v-chip small> {{ (item.students || []).length }} students </v-chip>
+          <v-chip small @click="viewStudents(item)">
+            {{ (item.students || []).length }} students
+          </v-chip>
         </template>
 
         <template v-slot:item.actions="{ item }">
@@ -381,9 +383,12 @@
           :loading="loading"
           class="mt-4"
         >
-          <template v-slot:item.name="{ item }">
-            {{ item.lastName }}, {{ item.firstName }}
-            {{ item.middleName || "" }}
+          <template v-slot:item.name.surname="{ item }">
+            {{ item.name.surname }}, {{ item.name.firstName }}
+            {{ item.name.middleName || "" }}
+          </template>
+          <template v-slot:item.course.name="{ item }">
+            {{ getCourseInfo(item.course)?.courseName || "No Course" }}
           </template>
         </v-data-table>
 
@@ -503,9 +508,9 @@ export default {
     ],
     studentHeaders: [
       { text: "Student ID", value: "studentId" },
-      { text: "Name", value: "name" },
-      { text: "Course", value: "course" },
-      { text: "Year Level", value: "yearLevel" },
+      { text: "Name", value: "name.surname" },
+      { text: "Course", value: "course.name" },
+      { text: "Gender", value: "personalInfo.gender" },
     ],
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     rules: {
@@ -546,6 +551,8 @@ export default {
 
     currentTeachingLoad() {
       if (!this.teachingLoad || !Array.isArray(this.teachingLoad)) return [];
+
+      console.log({ load: this.teachingLoad });
 
       return this.teachingLoad
         .filter(
@@ -601,7 +608,12 @@ export default {
       updateTeacherLoad: "teacherLoad/updateTeacherLoad",
       deleteTeacherLoad: "teacherLoad/deleteTeacherLoad",
       fetchSubjects: "subjects/fetchSubjects",
+      fetchCourses: "courses/fetchCourses",
     }),
+
+    getCourseInfo(courseId) {
+      return this.$store.state.courses.courses.find((c) => c._id === courseId);
+    },
 
     formatDate(date) {
       return date ? moment(date).format("MMMM D, YYYY") : "N/A";
@@ -891,6 +903,7 @@ export default {
           this.fetchProfessor(professorId),
           this.fetchProfessorTeacherLoads(professorId),
           this.fetchSubjects(),
+          this.fetchCourses(),
         ]);
         this.selectedYear = this.academicYears[0];
       } catch (error) {

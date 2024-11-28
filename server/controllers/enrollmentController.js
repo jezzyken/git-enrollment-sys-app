@@ -15,6 +15,7 @@ exports.enrollNewStudent = catchAsync(async (req, res) => {
 });
 
 exports.enrollContinuingStudent = catchAsync(async (req, res) => {
+  console.log('studentId:', req.params.studentId, typeof req.params.studentId);
   const result = await enrollmentService.enrollContinuingStudent(
     req.params.studentId,
     req.body

@@ -5,8 +5,8 @@ export default {
     return api.post("/enrollment/new-student", data);
   },
 
-  enrollContinuingStudent(studentId, data) {
-    return api.post(`/enrollment/continuing-student/${studentId}`, data);
+  enrollContinuingStudent({studentId, enrollmentData}) {
+    return api.post(`/enrollment/continuing-student/${studentId}`, enrollmentData);
   },
 
   addSubjects(enrollmentId, subjects) {
