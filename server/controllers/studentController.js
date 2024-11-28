@@ -4,8 +4,7 @@ const { parseStudentData } = require("../utils/parseFormData");
 
 exports.createStudent = catchAsync(async (req, res, next) => {
   const studentData = parseStudentData(req.body, req.file);
-  const student = await studentService.createStudent(studentData);
-
+  const student = await studentService.createStudent(studentData, req.file);
   res.status(201).json({
     status: "success",
     data: {

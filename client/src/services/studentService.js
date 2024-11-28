@@ -4,10 +4,10 @@ export default {
   createStudent(profileData) {
     const formData = new FormData();
 
-    if (profileData.image) {
-      const imageData = profileData.image.split(",")[1];
+    if (profileData.image && profileData.image.startsWith("data:image")) {
+      const imageData = profileData.image.split(";base64,")[1];
       const blob = this.dataURLtoBlob(imageData);
-      formData.append("image", blob, "profile.jpg");
+      if (blob) formData.append("image", blob, "profile.jpg");
     }
 
     Object.keys(profileData).forEach((key) => {
@@ -30,10 +30,10 @@ export default {
   updateStudent(id, profileData) {
     const formData = new FormData();
 
-    if (profileData.image) {
-      const imageData = profileData.image.split(",")[1];
+    if (profileData.image && profileData.image.startsWith("data:image")) {
+      const imageData = profileData.image.split(";base64,")[1];
       const blob = this.dataURLtoBlob(imageData);
-      formData.append("image", blob, "profile.jpg");
+      if (blob) formData.append("image", blob, "profile.jpg");
     }
 
     Object.keys(profileData).forEach((key) => {
@@ -61,15 +61,22 @@ export default {
     return api.get(`/student/${id}`);
   },
 
-  dataURLtoBlob(dataurl) {
-    const arr = dataurl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+  dataURLtoBlob(dataURL) {
+    if (!dataURL || typeof dataURL !== "string") return null;
+
+    try {
+      const byteString = atob(dataURL);
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      for (let i = 0; i < byteString.length; i++) {
+        uint8Array[i] = byteString.charCodeAt(i);
+      }
+
+      return new Blob([arrayBuffer], { type: "image/jpeg" });
+    } catch (error) {
+      console.error("Error converting data URL to blob:", error);
+      return null;
     }
-    return new Blob([u8arr], { type: mime });
   },
 };

@@ -1,73 +1,65 @@
 <template>
   <v-container fill-height fluid class="login-container">
+    <div class="animated-bg"></div>
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
         <v-card class="login-card">
-          <div class="text-center pt-8">
-            <h1 class="text-h4 font-weight-bold welcome-msg mb-4">
-              Welcome Back
-            </h1>
-            <p class="text-subtitle-1 grey--text">Please sign in to continue</p>
-          </div>
+         <div class="card-header">
+           <h1 class="text-h4 font-weight-bold mb-2">Welcome Back</h1>
+           <p class="text-subtitle-1 grey--text">Sign in to your account</p>
+         </div>
 
-          <v-card-text class="pt-6">
-            <v-form @submit.prevent="handleSubmit" ref="form">
-              <v-text-field
-                v-model="form.email"
-                label="Email"
-                name="email"
-                prepend-inner-icon="mdi-email"
-                type="email"
-                filled
-                rounded
-                dense
-                class="custom-field mb-4"
-                :error-messages="emailError"
-                @input="emailError = ''"
-              ></v-text-field>
+         <v-card-text>
+           <v-form @submit.prevent="handleSubmit" ref="form">
+             <v-text-field
+               v-model="form.email"
+               label="Email"
+               outlined
+               rounded
+               dense
+               :rules="[rules.required, rules.email]"
+               class="input-field"
+             >
+               <template v-slot:prepend>
+                 <v-icon color="primary">mdi-email</v-icon>
+               </template>
+             </v-text-field>
 
-              <v-text-field
-                v-model="form.password"
-                label="Password"
-                name="password"
-                prepend-inner-icon="mdi-lock"
-                :type="showPassword ? 'text' : 'password'"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                @click:append="showPassword = !showPassword"
-                filled
-                rounded
-                dense
-                class="custom-field"
-                :error-messages="passwordError"
-                @input="passwordError = ''"
-              ></v-text-field>
+             <v-text-field
+               v-model="form.password" 
+               label="Password"
+               :type="showPassword ? 'text' : 'password'"
+               outlined
+               rounded
+               dense
+               :rules="[rules.required]"
+               class="input-field"
+             >
+               <template v-slot:prepend>
+                 <v-icon color="primary">mdi-lock</v-icon>
+               </template>
+               <template v-slot:append>
+                 <v-icon @click="showPassword = !showPassword">
+                   {{ showPassword ? 'mdi-eye' : 'mdi-eye-off' }}
+                 </v-icon>
+               </template>
+             </v-text-field>
 
-              <v-btn
-                block
-                color="#a52a2a"
-                height="44"
-                rounded
-                :loading="loading"
-                @click="handleSubmit"
-                class="font-weight-bold"
-                dark
-              >
-                Sign In
-              </v-btn>
 
-              <v-alert
-                v-if="error"
-                type="error"
-                class="mt-4"
-                dense
-                text
-                dismissible
-              >
-                {{ error }}
-              </v-alert>
-            </v-form>
-          </v-card-text>
-        </v-card>
+             <v-btn
+               block
+               color="primary"
+               height="44"
+               elevation="2"
+               :loading="loading"
+               @click="handleSubmit"
+               class="login-btn"
+             >
+               Sign In
+             </v-btn>
+           </v-form>
+         </v-card-text>
+       </v-card>
       </v-col>
     </v-row>
   </v-container>
@@ -195,5 +187,71 @@ export default {
 
 .welcome-msg {
   color: #a52a2a;
+}
+
+.login-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.animated-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #f5f7fa, #c3cfe2, #a52a2a);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  z-index: 0;
+}
+
+.login-card {
+ position: relative;
+ z-index: 1;
+ border-radius: 20px;
+ backdrop-filter: blur(10px);
+ background: rgba(255, 255, 255, 0.9);
+ padding: 2rem;
+ transition: transform 0.3s ease;
+}
+
+.login-card:hover {
+ transform: translateY(-5px);
+}
+
+.card-header {
+ text-align: center;
+ padding: 1rem 0 2rem;
+}
+
+.input-field {
+ margin-bottom: 1.5rem;
+}
+
+.login-btn {
+ text-transform: none;
+ font-size: 1.1rem;
+ letter-spacing: 0.5px;
+ border-radius: 10px;
+}
+
+@keyframes gradient {
+ 0% { background-position: 0% 50% }
+ 50% { background-position: 100% 50% }
+ 100% { background-position: 0% 50% }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 </style>

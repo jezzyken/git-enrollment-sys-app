@@ -3,33 +3,38 @@ const AppError = require("../utils/appError");
 const { Readable } = require("stream");
 
 const bufferToStream = (buffer) => {
+  if (!Buffer.isBuffer(buffer)) {
+    buffer = Buffer.from(buffer);
+  }
   return Readable.from(buffer);
 };
 
 const uploadImageToCloudinary = async (imageBuffer) => {
-  if (!imageBuffer) return null;
+  if (!imageBuffer || !imageBuffer.buffer) return null;
 
-  const stream = bufferToStream(imageBuffer);
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: "student-profiles",
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-
-    stream.pipe(uploadStream);
-  });
+  try {
+    const stream = bufferToStream(imageBuffer.buffer);
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "student-profiles" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.pipe(uploadStream);
+    });
+    return result;
+  } catch (err) {
+    console.error("Cloudinary upload error:", err);
+    return null;
+  }
 };
 
 const deleteImageFromCloudinary = async (imageUrl) => {
   if (!imageUrl) return;
 
   try {
-    // Extract public_id from the Cloudinary URL
     const publicId = imageUrl.split("/").slice(-1)[0].split(".")[0];
     await cloudinary.uploader.destroy("student-profiles/" + publicId);
   } catch (error) {
@@ -43,7 +48,7 @@ exports.createStudent = async (studentData, imageBuffer) => {
 
     if (imageBuffer) {
       const result = await uploadImageToCloudinary(imageBuffer);
-      imageUrl = result.secure_url;
+      imageUrl = result?.secure_url;
     }
 
     const studentProfile = await StudentProfile.create({
@@ -53,6 +58,7 @@ exports.createStudent = async (studentData, imageBuffer) => {
 
     return studentProfile;
   } catch (error) {
+    console.log(error);
     throw new AppError(error.message, 400);
   }
 };

@@ -1340,6 +1340,8 @@ export default {
           image: this.imagePreview || "",
         };
 
+        console.log(submitData)
+
         const studentId = this.$route.query.studentId;
 
         if (studentId) {
