@@ -8,10 +8,11 @@ router
   .post(teacherLoadController.createTeacherLoad);
 
 router.post("/check-conflicts", teacherLoadController.checkScheduleConflicts);
-
 router.get("/available-subjects", teacherLoadController.getAvailableSubjects);
-
-router.patch("/:id/students", teacherLoadController.updateTeacherLoadStudents);
+router.get("/student-schedule", teacherLoadController.getStudentSchedule);
+router.patch("/students", teacherLoadController.updateTeacherLoadStudents);
+router.get("/student/grade", teacherLoadController.getStudentSubjectGrade);
+router.patch("/student/grade", teacherLoadController.updateStudentGrade);
 
 router
   .route("/:id")

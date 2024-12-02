@@ -34,7 +34,7 @@ exports.getAvailableSubjects = catchAsync(async (req, res) => {
     academicYear,
     semester,
   });
-  console.log(teacherLoads)
+  console.log(teacherLoads);
 
   const availableSubjects = teacherLoads.flatMap((load) =>
     load.subjects.map((subject) => ({
@@ -43,7 +43,7 @@ exports.getAvailableSubjects = catchAsync(async (req, res) => {
       section: subject.section,
       schedule: subject.schedule,
       currentEnrollment: subject.students.length,
-      teacherLoadId: load._id
+      teacherLoadId: load._id,
     }))
   );
 
@@ -55,11 +55,14 @@ exports.getAvailableSubjects = catchAsync(async (req, res) => {
 
 exports.getTeacherLoads = catchAsync(async (req, res) => {
   const teacherLoads = await teacherLoadService.getTeacherLoads(req.params.id);
-  console.log(teacherLoads)
   res.status(200).json({
     status: "success",
     data: { teacherLoads },
   });
+});
+
+exports.getStudentSchedule = catchAsync(async (req, res) => {
+  return await teacherLoadService.getStudentSchedule(req, res);
 });
 
 exports.updateTeacherLoad = catchAsync(async (req, res) => {
@@ -75,54 +78,66 @@ exports.updateTeacherLoad = catchAsync(async (req, res) => {
 
 exports.updateTeacherLoadStudents = async (req, res) => {
   try {
-    const { subjectId, studentId, action } = req.body;
-    const teacherLoadResults = await TeacherLoad.findById(req.params.id);
-
-    console.log(teacherLoadResults)
-    console.log(req.params.id)
-    console.log(req.body)
+    const { data } = req.body;
+    const updateResults = [];
 
 
+    for (const update of data) {
+      const { teacherLoadId, subjectId, studentId } = update;
+      const teacherLoad = await TeacherLoad.findById(teacherLoadId);
 
-    if (!teacherLoadResults) {
-      return res.status(404).json({
-        success: false,
-        message: "Teacher load not found",
-      });
-    }
-
-    const subjectIndex = teacherLoadResults.subjects.findIndex(
-      (s) => s._id.toString() === subjectId
-    );
-
-    if (subjectIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: "Subject not found in teacher load",
-      });
-    }
-
-    if (action === "add") {
-      if (
-        !teacherLoadResults.subjects[subjectIndex].students.includes(studentId)
-      ) {
-        teacherLoadResults.subjects[subjectIndex].students.push(studentId);
+      if (!teacherLoad) {
+        updateResults.push({
+          teacherLoadId,
+          success: false,
+          message: "Teacher load not found",
+        });
+        continue;
       }
-    } else if (action === "remove") {
-      teacherLoadResults.subjects[subjectIndex].students =
-        teacherLoadResults.subjects[subjectIndex].students.filter(
-          (id) => id.toString() !== studentId.toString()
-        );
-    }
 
-    await teacherLoadResults.save();
+      const subjectIndex = teacherLoad.subjects.findIndex(
+        (s) => s.subject.toString() === subjectId
+      );
+
+      if (subjectIndex === -1) {
+        updateResults.push({
+          teacherLoadId,
+          success: false,
+          message: "Subject not found in teacher load",
+        });
+        continue;
+      }
+
+      const studentExists = teacherLoad.subjects[subjectIndex].students.some(
+        (s) => s.student.toString() === studentId
+      );
+
+      if (!studentExists) {
+        teacherLoad.subjects[subjectIndex].students.push({
+          student: studentId,
+          grades: {
+            midterm: null,
+            final: null,
+          },
+        });
+      }
+
+      console.log(teacherLoad.subjects[0].students)
+
+
+      await teacherLoad.save();
+
+      updateResults.push({
+        teacherLoadId,
+        success: true,
+        message: "Student added successfully",
+      });
+    }
 
     res.json({
       success: true,
-      message: `Student ${
-        action === "add" ? "added to" : "removed from"
-      } teacher load`,
-      teaherLoad: teacherLoadResults,
+      message: "Teacher load updates completed",
+      results: updateResults,
     });
   } catch (error) {
     console.error("Error updating teacher load students:", error);
@@ -132,6 +147,14 @@ exports.updateTeacherLoadStudents = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+exports.updateStudentGrade = async (req, res) => {
+  await teacherLoadService.updateStudentGrade(req, res)
+};
+
+exports.getStudentSubjectGrade = async (req, res) => {
+  await teacherLoadService.getStudentSubjectGrade(req, res)
 };
 
 exports.deleteTeacherLoad = catchAsync(async (req, res) => {

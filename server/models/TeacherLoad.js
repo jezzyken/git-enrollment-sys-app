@@ -59,8 +59,23 @@ const TeacherLoadSchema = new Schema(
         },
         students: [
           {
-            type: Schema.Types.ObjectId,
-            ref: "StudentProfile",
+            student: {
+              type: Schema.Types.ObjectId,
+              ref: "StudentProfile",
+            },
+            grades: {
+              final: {
+                type: Number,
+                min: 0,
+                max: 100,
+                default: null,
+              },
+              remarks: {
+                type: String,
+                enum: ["Passed", "Failed"],
+                default: null,
+              },
+            },
           },
         ],
       },

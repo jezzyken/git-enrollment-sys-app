@@ -61,7 +61,7 @@ export default {
     },
 
     async enrollContinuingStudent({ dispatch }, { studentId, enrollmentData }) {
-      console.log(studentId, enrollmentData )
+      console.log(studentId, enrollmentData);
       try {
         const response = await enrollmentService.enrollContinuingStudent({
           studentId,
@@ -74,14 +74,12 @@ export default {
       }
     },
 
-    async fetchStudentEnrollments({ commit }, studentId) {
+    async fetchStudentEnrollments({ commit }, data) {
       try {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
-        const response = await enrollmentService.getStudentEnrollments(
-          studentId
-        );
-        commit("SET_ENROLLMENTS", response.data.data.enrollments);
+        const response = await enrollmentService.getStudentEnrollments(data);
+        commit("SET_CURRENT_ENROLLMENT", response.data.data.enrollments);
       } catch (error) {
         commit(
           "SET_ERROR",
@@ -105,6 +103,26 @@ export default {
         commit(
           "SET_ERROR",
           error.response?.data?.message || "Failed to fetch enrollment details"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
+    async updateEnrollmentStatus({ commit }, enrollmentId) {
+      try {
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await enrollmentService.updateEnrollmentStatus(
+          enrollmentId
+        );
+        commit("SET_CURRENT_ENROLLMENT", response.data.data);
+        return response.data;
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message || "Failed to update enrollment status"
         );
         throw error;
       } finally {

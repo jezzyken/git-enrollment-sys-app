@@ -17,15 +17,17 @@ export default {
     return api.patch(`/enrollment/${enrollmentId}/subjects/${subjectId}/drop`);
   },
 
-  getStudentEnrollments(studentId) {
-    return api.get(`/enrollment/student/${studentId}`);
+  getStudentEnrollments(data) {
+    return api.get(`/enrollment/student/${data.studentId}`, {
+      params: data.query
+    });
   },
 
   getEnrollmentDetails(enrollmentId) {
     return api.get(`/enrollment/${enrollmentId}`);
   },
 
-  updatePayment(enrollmentId, paymentData) {
-    return api.post(`/enrollment/${enrollmentId}/payment`, paymentData);
+  updateEnrollmentStatus(enrollmentId) {
+    return api.patch(`/enrollment/${enrollmentId}`);
   },
 };

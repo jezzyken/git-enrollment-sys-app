@@ -34,25 +34,9 @@ const EnrollmentSchema = new Schema(
     },
     subjects: [
       {
-        subject: {
-          type: Schema.Types.ObjectId,
-          ref: "Subject",
-          required: true,
-        },
-        teacherLoad: {
-          type: Schema.Types.ObjectId,
-          ref: "TeacherLoad",
-          required: true,
-        },
-        section: {
-          type: String,
-          required: true,
-        },
-        status: {
-          type: String,
-          enum: ["enrolled", "dropped", "withdrawn", "incomplete"],
-          default: "enrolled",
-        },
+        type: Schema.Types.ObjectId,
+        ref: "Subject",
+        required: true,
       },
     ],
     totalUnits: {

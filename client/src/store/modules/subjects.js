@@ -62,13 +62,13 @@ export default {
   },
 
   actions: {
-    async fetchSubjects({ commit }) {
+    async fetchSubjects({ commit }, query) {
       try {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
-        const response = await subjectService.getAllSubjects();
-        console.log(response)
+        const response = await subjectService.getAllSubjects(query);
         commit("SET_SUBJECTS", response.data.data.subjects);
+        return response.data.data.subjects
       } catch (error) {
         commit(
           "SET_ERROR",

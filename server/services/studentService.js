@@ -74,7 +74,7 @@ exports.getAllStudents = async (query) => {
 };
 
 exports.getStudent = async (id) => {
-  const student = await StudentProfile.findById(id);
+  const student = await StudentProfile.findById(id).populate("course");
   if (!student) {
     throw new AppError("No student found with that ID", 404);
   }

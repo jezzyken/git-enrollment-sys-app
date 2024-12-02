@@ -524,11 +524,6 @@ export default {
       this.snackbarColor = color;
       this.showSnackbar = true;
     },
-
-    async handleSearch() {
-      this.options.page = 1;
-      await this.fetchSubjects();
-    },
   },
 
   async created() {

@@ -10,7 +10,7 @@ exports.createSubject = catchAsync(async (req, res) => {
 });
 
 exports.getAllSubjects = catchAsync(async (req, res) => {
-  const subjects = await subjectService.getAllSubjects(req.query);
+  const subjects = await subjectService.getAllSubjects(req);
   res.status(200).json({
     status: 'success',
     results: subjects.length,

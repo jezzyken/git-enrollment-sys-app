@@ -6,6 +6,7 @@ export default {
   state: {
     teacherLoads: [],
     currentTeacherLoad: null,
+    studentSchedule: null,
     loading: false,
     error: null,
   },
@@ -13,6 +14,9 @@ export default {
   mutations: {
     SET_TEACHER_LOADS(state, loads) {
       state.teacherLoads = loads;
+    },
+    SET_STUDENT_SCHEDULE(state, schedule) {
+      state.studentSchedule = schedule;
     },
     SET_CURRENT_TEACHER_LOAD(state, load) {
       state.currentTeacherLoad = load;
@@ -112,6 +116,37 @@ export default {
       }
     },
 
+    async fetchStudentSubjectGrade({ commit }, query) {
+      commit("SET_LOADING", false);
+      try {
+        const response = await teacherLoadService.fetchStudentSubjectGrade(query);
+        console.log({grade: response.data})
+        return response.data
+      } catch (error) {
+        commit("SET_ERROR", error.response?.data?.message);
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
+    async fetchStudentSchedule({ commit }, data) {
+      commit("SET_LOADING", true);
+      try {
+        const response = await teacherLoadService.getStudentSchedule(data);
+        commit("SET_STUDENT_SCHEDULE", response.data.data);
+        return response;
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message || "Failed to fetch student schedule"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
     async createTeacherLoad({ commit }, loadData) {
       commit("SET_LOADING", true);
       try {
@@ -147,12 +182,21 @@ export default {
       }
     },
 
-    async updateTeacherLoadStudents({ commit }, { teacherLoadId, data }) {
+    async updateTeacherLoadStudents({ commit }, data) {
       try {
         const response = await teacherLoadService.updateTeacherLoadStudents(
-          teacherLoadId,
           data
         );
+        return response.data;
+      } catch (error) {
+        console.error("Error updating teacher load students:", error);
+        throw error;
+      }
+    },
+
+    async updateStudentGrade({ commit }, data) {
+      try {
+        const response = await teacherLoadService.updateStudentGrade(data);
         return response.data;
       } catch (error) {
         console.error("Error updating teacher load students:", error);
@@ -202,6 +246,15 @@ export default {
   },
 
   getters: {
+    getStudentSchedule: (state) => state.studentSchedule,
+
+    getScheduleByDay: (state) => (day) => {
+      if (!state.studentSchedule?.schedule) return [];
+      return state.studentSchedule.schedule.filter(
+        (item) => item.schedule.day === day
+      );
+    },
+
     getTeacherLoadById: (state) => (id) => {
       return state.teacherLoads.find((load) => load._id === id);
     },

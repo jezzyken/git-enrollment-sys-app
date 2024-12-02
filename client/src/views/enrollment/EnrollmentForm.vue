@@ -406,84 +406,150 @@
                   </v-col>
 
                   <v-col cols="12">
+                    <v-card class="mb-6" v-if="previousSubjects.length">
+                      <v-card-title class="headline primary white--text pa-2">
+                        Previous Semester Subjects
+                      </v-card-title>
+                      <v-card-text class="pa-0">
+                        <v-data-table
+                          :headers="previousSubjectHeaders"
+                          :items="previousSubjects"
+                          dense
+                          disable-sort
+                          hide-default-footer
+                        >
+                          <template v-slot:item.grade="{ item }">
+                            <v-chip small :color="getGradeColor(item.grade)">
+                              {{ item.grade }}
+                            </v-chip>
+                          </template>
+                          <template v-slot:item.remarks="{ item }">
+                            <v-chip
+                              small
+                              :color="getRemarksColor(item.remarks)"
+                            >
+                              {{ item.remarks }}
+                            </v-chip>
+                          </template>
+                        </v-data-table>
+                      </v-card-text>
+                    </v-card>
+
                     <v-select
-                      v-model="enrollmentForm.subject"
-                      :items="formattedSubjects"
+                      v-model="enrollmentForm.subjects"
+                      :items="subjects"
                       :loading="loading"
-                      item-text="displayName"
+                      item-text="DescriptiveTitle"
                       item-value="_id"
-                      label="Select Subject*"
+                      label="Select Subjects*"
                       outlined
                       dense
-                      @change="addSubject"
+                      multiple
+                      chips
+                      :menu-props="{ maxHeight: '400px' }"
                     >
-                      <template v-slot:selection="{ item }">
-                        <span
-                          >{{ item.subject.DescriptiveTitle }} -
-                          {{ item.section }} -
-                          {{ formatSchedule(item.schedule) }}</span
+                      <template v-slot:selection="{ item, index }">
+                        <v-chip
+                          v-if="index < 2"
+                          small
+                          close
+                          @click:close="removeSubject(item._id)"
                         >
+                          <span
+                            >{{ item.catNo }} -
+                            {{ item.DescriptiveTitle }}</span
+                          >
+                          <v-chip x-small class="ml-2 primary"
+                            >{{ item.units }} units</v-chip
+                          >
+                        </v-chip>
+                        <span v-if="index === 2" class="grey--text caption">
+                          (+{{ enrollmentForm.subjects.length - 2 }} others)
+                        </span>
                       </template>
-                      <template v-slot:item="{ item }">
-                        <v-list-item-content>
-                          <v-list-item-title class="font-weight-bold">
-                            {{ item.subject.DescriptiveTitle }}
-                          </v-list-item-title>
-                          <v-list-item-subtitle>
-                            <v-chip x-small class="mr-2"
-                              >Section {{ item.section }}</v-chip
-                            >
-                            <v-chip x-small
-                              >Units: {{ item.subject.Units }}</v-chip
-                            >
-                          </v-list-item-subtitle>
-                          <div class="mt-2">
-                            <v-chip small outlined>
-                              {{ formatSchedule(item.schedule) }}
-                            </v-chip>
-                          </div>
-                        </v-list-item-content>
+
+                      <template v-slot:item="{ item, attrs, on }">
+                        <v-list-item
+                          v-bind="attrs"
+                          v-on="on"
+                          :disabled="!validatePrerequisites(item)"
+                        >
+                          <v-list-item-content>
+                            <v-list-item-title>
+                              {{ item.catNo }} - {{ item.DescriptiveTitle }}
+                              <v-chip x-small color="primary" class="ml-2"
+                                >{{ item.units }} units</v-chip
+                              >
+                              <v-chip
+                                x-small
+                                color="error"
+                                class="ml-2"
+                                v-if="hasFailedPrerequisite(item)"
+                              >
+                                Failed Prerequisites
+                              </v-chip>
+                            </v-list-item-title>
+                            <v-list-item-subtitle class="caption">
+                              Prerequisites:
+                              {{ item.prerequisites.join(", ") || "None" }}
+                            </v-list-item-subtitle>
+                          </v-list-item-content>
+                        </v-list-item>
                       </template>
                     </v-select>
 
-                    <v-card
-                      v-if="selectedSubjects.length"
-                      outlined
-                      class="mt-3"
-                    >
-                      <v-card-title class="py-2 px-4 subtitle-1 grey lighten-4">
-                        <v-icon left small color="primary"
-                          >mdi-clipboard-list</v-icon
-                        >
-                        Selected Subjects
-                        <v-spacer></v-spacer>
-                        <v-chip small
-                          >{{ selectedSubjects.length }} subject(s)</v-chip
-                        >
-                      </v-card-title>
+                    <!-- Subject List Card -->
+                    <v-card class="mt-4" outlined>
                       <v-list dense>
+                        <v-subheader>Selected Subjects</v-subheader>
+
                         <v-list-item
                           v-for="subject in selectedSubjects"
                           :key="subject._id"
                         >
                           <v-list-item-content>
-                            <v-list-item-title>
-                              {{ subject.subject.DescriptiveTitle }}
-                              <v-chip x-small color="primary" class="ml-2">{{
-                                subject.subject.catNo
-                              }}</v-chip>
+                            <v-list-item-title class="d-flex align-center">
+                              <span
+                                >{{ subject.catNo }} -
+                                {{ subject.DescriptiveTitle }}</span
+                              >
+                              <v-chip x-small color="primary" class="ml-2"
+                                >{{ subject.units }} units</v-chip
+                              >
                             </v-list-item-title>
-                            <v-list-item-subtitle>
-                              Section: {{ subject.section }} | Room:
-                              {{ subject.schedule[0].room }} |
-                              {{ formatSchedule(subject.schedule) }}
+                            <v-list-item-subtitle class="caption">
+                              Prerequisites:
+                              {{ subject.prerequisites.join(", ") || "None" }}
                             </v-list-item-subtitle>
                           </v-list-item-content>
                           <v-list-item-action>
-                            <v-btn icon small @click="removeSubject(subject)">
-                              <v-icon small color="error">mdi-delete</v-icon>
+                            <v-btn
+                              icon
+                              small
+                              color="error"
+                              @click="removeSubject(subject._id)"
+                            >
+                              <v-icon>mdi-delete</v-icon>
                             </v-btn>
                           </v-list-item-action>
+                        </v-list-item>
+
+                        <v-list-item v-if="!selectedSubjects.length">
+                          <v-list-item-content>
+                            <v-list-item-title class="text-center grey--text">
+                              No subjects selected
+                            </v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+
+                        <!-- Total Units Display -->
+                        <v-divider></v-divider>
+                        <v-list-item>
+                          <v-list-item-content>
+                            <v-list-item-title class="font-weight-medium">
+                              Total Units: {{ totalUnits }}
+                            </v-list-item-title>
+                          </v-list-item-content>
                         </v-list-item>
                       </v-list>
                     </v-card>
@@ -501,10 +567,10 @@
                   >
                     Review Enrollment Details
                     <v-spacer></v-spacer>
-                    <v-btn color="white" text>
+                    <!-- <v-btn color="white" text>
                       <v-icon left>mdi-printer</v-icon>
                       Print
-                    </v-btn>
+                    </v-btn> -->
                   </v-card-title>
 
                   <v-card-text class="review-content py-4">
@@ -702,19 +768,18 @@
                             :key="subject._id"
                           >
                             <v-list-item-content>
-                              <v-list-item-title>
-                                {{ subject.subject.DescriptiveTitle }}
-                                <v-chip x-small color="primary" class="ml-2">{{
-                                  subject.subject.catNo
-                                }}</v-chip>
-                                <v-chip x-small class="ml-2"
-                                  >Units: {{ subject.subject.Units }}</v-chip
+                              <v-list-item-title class="d-flex align-center">
+                                <span
+                                  >{{ subject.catNo }} -
+                                  {{ subject.DescriptiveTitle }}</span
+                                >
+                                <v-chip x-small color="primary" class="ml-2"
+                                  >{{ subject.units }} units</v-chip
                                 >
                               </v-list-item-title>
-                              <v-list-item-subtitle>
-                                Section: {{ subject.section }} | Room:
-                                {{ subject.schedule[0].room }} |
-                                {{ formatSchedule(subject.schedule) }}
+                              <v-list-item-subtitle class="caption">
+                                Prerequisites:
+                                {{ subject.prerequisites.join(", ") || "None" }}
                               </v-list-item-subtitle>
                             </v-list-item-content>
                           </v-list-item>
@@ -723,6 +788,15 @@
                             <v-list-item-content>
                               <v-list-item-title class="text-center grey--text">
                                 No subjects selected
+                              </v-list-item-title>
+                            </v-list-item-content>
+                          </v-list-item>
+
+                          <v-divider></v-divider>
+                          <v-list-item>
+                            <v-list-item-content>
+                              <v-list-item-title class="font-weight-medium">
+                                Total Units: {{ totalUnits }}
                               </v-list-item-title>
                             </v-list-item-content>
                           </v-list-item>
@@ -850,6 +924,7 @@ export default {
       semester: "",
       yearLevel: null,
       course: null,
+      subjects: [],
       requirements: {
         form137: false,
         goodMoral: false,
@@ -859,8 +934,16 @@ export default {
       },
     },
     availableSubjects: [],
+    // selectedSubjects: [],
     subjects: [],
-    selectedSubjects: [],
+    previousSubjectHeaders: [
+      { text: "Subject Code", value: "catNo" },
+      { text: "Description", value: "DescriptiveTitle" },
+      { text: "Units", value: "units" },
+      { text: "Grade", value: "grade" },
+      { text: "Remarks", value: "remarks" },
+    ],
+    previousSubjects: [],
     snackbar: {
       show: false,
       text: "",
@@ -872,31 +955,24 @@ export default {
   computed: {
     ...mapState("students", ["students"]),
     ...mapState("courses", ["courses"]),
-    ...mapState("teacherLoad", ["loading"]),
     formattedDateOfBirth() {
       if (!this.studentForm.dateOfBirth) return "";
       return new Date(this.studentForm.dateOfBirth).toLocaleDateString();
     },
-    formattedSubjects() {
-      let subjects = [];
-      this.subjects.forEach((subject) => {
-        console.log(subject);
-        subject.schedule.forEach((schedule) => {
-          subjects.push({
-            _id: `${subject._id}-${schedule.day}-${schedule.timeStart}`,
-            subject: subject.subject,
-            section: subject.section,
-            schedule: [schedule],
-            teacherLoadId: subject.teacherLoadId,
-            displayName: `${subject.subject.DescriptiveTitle} - Section ${
-              subject.section
-            } - ${schedule.day} ${this.formatTime(schedule.timeStart)}`,
-          });
-        });
-      });
 
-      console.log(subjects);
-      return subjects;
+    selectedSubjects() {
+      return this.enrollmentForm.subjects
+        .map((subjectId) =>
+          this.subjects.find((subject) => subject._id === subjectId)
+        )
+        .filter(Boolean);
+    },
+
+    totalUnits() {
+      return this.selectedSubjects.reduce(
+        (total, subject) => total + subject.units,
+        0
+      );
     },
   },
 
@@ -907,7 +983,10 @@ export default {
       "enrollNewStudent",
       "enrollContinuingStudent",
     ]),
-    ...mapActions("teacherLoad", ["updateTeacherLoadStudents"]),
+    ...mapActions("teacherLoad", [
+      "updateTeacherLoadStudents",
+      "fetchStudentSubjectGrade",
+    ]),
 
     getStatusColor(status) {
       const colors = {
@@ -918,23 +997,41 @@ export default {
       return colors[status] || "warning";
     },
 
-    addSubject() {
-      const selected = this.formattedSubjects.find(
-        (s) => s._id === this.enrollmentForm.subject
+    removeSubject(subjectId) {
+      this.enrollmentForm.subjects = this.enrollmentForm.subjects.filter(
+        (id) => id !== subjectId
       );
-      if (
-        selected &&
-        !this.selectedSubjects.find((s) => s._id === selected._id)
-      ) {
-        this.selectedSubjects.push(selected);
-      }
-      this.enrollmentForm.subject = null;
     },
 
-    removeSubject(subject) {
-      this.selectedSubjects = this.selectedSubjects.filter(
-        (s) => s._id !== subject._id
-      );
+    getGradeColor(grade) {
+      return grade >= 75 ? "success" : "error";
+    },
+
+    getRemarksColor(remarks) {
+      return remarks === "Passed" ? "success" : "error";
+    },
+
+    validatePrerequisites(subject) {
+      if (!subject.prerequisites?.length) return true;
+
+      return subject.prerequisites.every((prereq) => {
+        const prevSubject = this.previousSubjects.find(
+          (s) => s.catNo === prereq
+        );
+        if (!prevSubject) return false;
+        return prevSubject.remarks === "Passed";
+      });
+    },
+
+    hasFailedPrerequisite(subject) {
+      if (!subject.prerequisites?.length) return false;
+
+      return subject.prerequisites.some((prereq) => {
+        const prevSubject = this.previousSubjects.find(
+          (s) => s.catNo === prereq
+        );
+        return prevSubject?.remarks === "Failed";
+      });
     },
 
     nextStep() {
@@ -999,33 +1096,57 @@ export default {
       }
     },
 
-    formatSchedule(schedule) {
-      return schedule
-        .map(
-          (s) =>
-            `${s.day} ${this.formatTime(s.timeStart)}-${this.formatTime(
-              s.timeEnd
-            )}`
-        )
-        .join(", ");
-    },
-    formatTime(time) {
-      return moment(time, "HH:mm").format("h:mm A");
-    },
-
     async fetchSubjects() {
-      if (this.enrollmentForm.academicYear && this.enrollmentForm.semester) {
-        this.subjects = await this.$store.dispatch(
-          "teacherLoad/fetchAvailableSubjects",
-          {
-            academicYear: this.enrollmentForm.academicYear,
+      if (
+        this.enrollmentForm.yearLevel &&
+        this.enrollmentForm.semester &&
+        this.enrollmentForm.course
+      ) {
+        const [subjects, grades] = await Promise.all([
+          this.$store.dispatch("subjects/fetchSubjects", {
             semester: this.enrollmentForm.semester,
-          }
-        );
+            yearLevel: this.enrollmentForm.yearLevel,
+            course: this.enrollmentForm.course,
+          }),
+          this.fetchStudentSubjectGrade({
+            semester: this.enrollmentForm.semester,
+            yearLevel: this.enrollmentForm.yearLevel,
+            course: this.enrollmentForm.course,
+            student: this.selectedStudent,
+            academicYear: this.enrollmentForm.academicYear,
+          }),
+        ]);
 
-        console.log({ subjects: this.subjects });
+        this.previousSubjects = grades;
+        this.subjects = subjects;
       }
     },
+
+    // async fetchSubjects() {
+    //   if (
+    //     this.enrollmentForm.yearLevel &&
+    //     this.enrollmentForm.semester &&
+    //     this.enrollmentForm.course
+    //   ) {
+    //     const response = await this.$store.dispatch("subjects/fetchSubjects", {
+    //       semester: this.enrollmentForm.semester,
+    //       yearLevel: this.enrollmentForm.yearLevel,
+    //       course: this.enrollmentForm.course,
+    //     });
+
+    //     this.subjects = response;
+
+    //     const studentGrade = await this.fetchStudentSubjectGrade({
+    //       semester: this.enrollmentForm.semester,
+    //       yearLevel: this.enrollmentForm.yearLevel,
+    //       course: this.enrollmentForm.course._id,
+    //       student: this.selectedStudent,
+    //       academicYear: this.enrollmentForm.academicYear,
+    //     });
+
+    //     this.previousSubjects = studentGrade;
+    //   }
+    // },
 
     async submitEnrollment() {
       try {
@@ -1036,13 +1157,8 @@ export default {
           yearLevel: this.enrollmentForm.yearLevel,
           course: this.enrollmentForm.course,
           enrollmentType: this.enrollmentForm.enrollmentType,
-          enrollmentStatus: "enrolled",
-          subjects: this.selectedSubjects.map((subject) => ({
-            subject: subject._id.split("-")[0],
-            section: subject.section,
-            teacherLoad: subject.teacherLoadId,
-            status: "enrolled",
-          })),
+          subjects: this.enrollmentForm.subjects,
+          enrollmentStatus: "evaluated",
         };
 
         let response;
@@ -1060,41 +1176,11 @@ export default {
             studentData,
             enrollmentData,
           });
-
-          if (response.status === "success") {
-            await Promise.all(
-              this.selectedSubjects.map((subject) =>
-                this.updateTeacherLoadStudents({
-                  teacherLoadId: subject.teacherLoadId,
-                  data: {
-                    subjectId: subject._id.split("-")[0],
-                    studentId: response.data.student._id,
-                    action: "add",
-                  },
-                })
-              )
-            );
-          }
         } else {
           response = await this.enrollContinuingStudent({
             studentId: this.selectedStudent,
             enrollmentData,
           });
-
-          if (response.status === "success") {
-            await Promise.all(
-              this.selectedSubjects.map((subject) =>
-                this.updateTeacherLoadStudents({
-                  teacherLoadId: subject.teacherLoadId,
-                  data: {
-                    subjectId: subject._id.split("-")[0],
-                    studentId: this.selectedStudent,
-                    action: "add",
-                  },
-                })
-              )
-            );
-          }
         }
 
         if (response.status === "success") {
@@ -1130,11 +1216,23 @@ export default {
   },
 
   watch: {
-    "enrollmentForm.academicYear"() {
-      this.fetchSubjects();
+    "enrollmentForm.semester": {
+      async handler() {
+        this.enrollmentForm.subjects = [];
+        await this.fetchSubjects();
+      },
     },
-    "enrollmentForm.semester"() {
-      this.fetchSubjects();
+    "enrollmentForm.yearLevel": {
+      async handler() {
+        this.enrollmentForm.subjects = [];
+        await this.fetchSubjects();
+      },
+    },
+    "enrollmentForm.course": {
+      async handler() {
+        this.enrollmentForm.subjects = [];
+        await this.fetchSubjects();
+      },
     },
   },
 };

@@ -13,6 +13,14 @@ export default {
     return api.get(`/teacher-load/${id}`);
   },
 
+  getStudentSchedule(query) {
+    return api.get(`/teacher-load/student-schedule`, { params: query });
+  },
+
+  fetchStudentSubjectGrade(query) {
+    return api.get(`/teacher-load/student/grade`, { params: query });
+  },
+
   createTeacherLoad(loadData) {
     return api.post("/teacher-load", loadData);
   },
@@ -36,7 +44,11 @@ export default {
       params: { academicYear, semester },
     });
   },
-  updateTeacherLoadStudents(teacherLoadId, data) {
-    return api.patch(`/teacher-load/${teacherLoadId}/students`, data);
-  }
+  updateTeacherLoadStudents(data) {
+    return api.patch(`/teacher-load/students`, data);
+  },
+
+  updateStudentGrade(data) {
+    return api.patch(`/teacher-load/student/grade`, data);
+  },
 };

@@ -1,459 +1,459 @@
 <template>
-  <v-container fluid>
-    <v-card class="mb-4">
-      <div class="profile-header"></div>
-      <v-row no-gutters>
-        <v-col cols="12" md="3" class="text-center profile-picture-section">
-          <div class="profile-picture-container">
-            <v-avatar size="150" class="profile-avatar">
-              <v-img
-                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0hukRkoCl4HSLWAfbr5mvuFRaF2DOhmJQtQ&s"
-                :alt="professorFullName"
-              ></v-img>
-              <!-- <v-icon v-else size="80" color="grey lighten-1"
-                >mdi-account</v-icon
-              > -->
-            </v-avatar>
-            <!-- <v-btn
-              small
-              color="primary"
-              dark
-              class="change-photo-btn"
-              @click="triggerFileInput"
-            >
-              <v-icon small left>mdi-camera</v-icon>
-              Change Photo
-            </v-btn> -->
-            <input
-              type="file"
-              ref="fileInput"
-              accept="image/*"
-              style="display: none"
-              @change="handleFileUpload"
-            />
-          </div>
-        </v-col>
+  <v-container fluid class="pa-6">
+    <v-row class="mb-6">
+      <v-col cols="12">
+        <v-card class="rounded-lg" elevation="2">
+          <v-skeleton-loader
+            v-if="loading"
+            type="card-heading, list-item-three-line"
+          ></v-skeleton-loader>
 
-        <v-col cols="12" md="9">
-          <v-card-text>
-            <v-row>
-              <v-col cols="12">
-                <div class="text-h5 font-weight-bold mb-2">
-                  {{ professorFullName }}
+          <template v-else>
+            <v-row no-gutters>
+              <v-col
+                cols="12"
+                sm="2"
+                class="pa-4 d-flex justify-center align-center"
+              >
+                <v-avatar size="120" color="grey lighten-2">
+                  <v-img
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0hukRkoCl4HSLWAfbr5mvuFRaF2DOhmJQtQ&s"
+                    :alt="currentStudent?.name?.firstName"
+                  ></v-img>
+                  <!-- <span v-else class="text-h4 font-weight-medium">
+                    {{ getInitials(currentStudent?.name) }}
+                  </span> -->
+                </v-avatar>
+              </v-col>
+
+              <v-col cols="12" sm="6" class="pa-4">
+                <div class="d-flex align-center mb-2">
+                  <h1 class="text-h4 font-weight-medium">
+                    {{ currentStudent?.name?.firstName }}
+                    {{ currentStudent?.name?.surname }}
+                    <span
+                      v-if="currentStudent?.name?.nameExtension"
+                      class="text-subtitle-1"
+                    >
+                      {{ currentStudent?.name?.nameExtension }}
+                    </span>
+                  </h1>
+                  <v-chip
+                    class="ml-4"
+                    :color="getStatusColor(currentStudent?.accountStatus)"
+                    small
+                    label
+                  >
+                    {{ currentStudent?.accountStatus }}
+                  </v-chip>
                 </div>
-                <div class="text-subtitle-1 grey--text mb-4">
-                  {{ professor?.academicInfo?.position || "Faculty Member" }}
+
+                <div
+                  class="d-flex flex-wrap align-center grey--text text--darken-1"
+                >
+                  <div class="mr-4 mb-2">
+                    <v-icon small class="mr-1">mdi-card-account-details</v-icon>
+                    {{ currentStudent?.studentId || "No ID" }}
+                  </div>
+                  <div class="mr-4 mb-2">
+                    <v-icon small class="mr-1">mdi-school</v-icon>
+                    {{
+                      currentStudent?.course?.courseName || "No course assigned"
+                    }}
+                  </div>
+                  <div class="mr-4 mb-2">
+                    <v-icon small class="mr-1">mdi-email</v-icon>
+                    {{
+                      currentStudent?.contactInfo?.emailAddress || "No email"
+                    }}
+                  </div>
+                  <div class="mb-2">
+                    <v-icon small class="mr-1">mdi-phone</v-icon>
+                    {{
+                      currentStudent?.contactInfo?.contactNumber || "No contact"
+                    }}
+                  </div>
                 </div>
               </v-col>
 
-              <v-col cols="12" md="6">
-                <v-list dense>
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-card-account-details</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-subtitle>Employee ID</v-list-item-subtitle>
-                      <v-list-item-title>{{
-                        professor?.employeeId
-                      }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-domain</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-subtitle>Department</v-list-item-subtitle>
-                      <v-list-item-title>{{
-                        professor?.academicInfo?.department?.name
-                      }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-calendar-clock</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-subtitle>Date Hired</v-list-item-subtitle>
-                      <v-list-item-title>{{
-                        formatDate(professor?.academicInfo?.dateHired)
-                      }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list>
-              </v-col>
-
-              <!-- Employment Information -->
-              <v-col cols="12" md="6">
-                <v-list dense>
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-briefcase</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-subtitle
-                        >Employment Status</v-list-item-subtitle
-                      >
-                      <v-list-item-title class="text-capitalize">{{
-                        professor?.academicInfo?.employmentStatus
-                      }}</v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-account-check</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-subtitle
-                        >Account Status</v-list-item-subtitle
-                      >
-                      <v-list-item-title>
-                        <v-chip
-                          :color="getStatusColor(professor?.accountStatus)"
-                          small
-                          label
-                          text-color="white"
-                        >
-                          {{ professor?.accountStatus }}
-                        </v-chip>
-                      </v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-
-                  <v-list-item>
-                    <v-list-item-icon>
-                      <v-icon>mdi-book-education</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-subtitle>Current Load</v-list-item-subtitle>
-                      <v-list-item-title>
-                        {{ currentSemesterUnits }} Units
-                      </v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list>
+              <!-- Quick Stats Section -->
+              <v-col cols="12" sm="4" class="grey lighten-4 pa-4">
+                <div class="text-subtitle-2 mb-3">Student Information</div>
+                <v-row dense>
+                  <v-col cols="6">
+                    <div class="caption grey--text mb-1">Gender</div>
+                    <div class="body-2">
+                      {{ currentStudent?.personalInfo?.gender || "N/A" }}
+                    </div>
+                  </v-col>
+                  <v-col cols="6">
+                    <div class="caption grey--text mb-1">Birth Date</div>
+                    <div class="body-2">
+                      {{ formatDate(currentStudent?.dateOfBirth) }}
+                    </div>
+                  </v-col>
+                  <v-col cols="12">
+                    <div class="caption grey--text mb-1">Address</div>
+                    <div class="body-2">
+                      {{ currentStudent?.homeAddress || "No address provided" }}
+                    </div>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
-          </v-card-text>
-        </v-col>
-      </v-row>
+          </template>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-card class="mb-6 rounded-lg" elevation="2">
+      <v-card-text>
+        <v-row align="center">
+          <v-col cols="12" sm="4">
+            <v-select
+              v-model="selectedAcademicYear"
+              :items="academicYears"
+              label="Academic Year"
+              outlined
+              dense
+              hide-details
+              prepend-inner-icon="mdi-calendar"
+              @change="fetchEnrollment"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-select
+              v-model="selectedSemester"
+              :items="['First', 'Second']"
+              label="Semester"
+              outlined
+              dense
+              hide-details
+              prepend-inner-icon="mdi-book-open-variant"
+              @change="fetchEnrollment"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="4" class="text-right">
+            <v-btn
+              color="primary"
+              @click="fetchEnrollment"
+              :loading="loading"
+              class="px-6"
+            >
+              <v-icon left>mdi-refresh</v-icon>
+              Refresh
+            </v-btn>
+
+            <v-btn v-if="currentEnrollment?.enrollmentStatus !== 'enrolled'" color="success" @click="saveEnrollment" class="px-6 ml-2">
+              <v-icon left>mdi-file</v-icon>
+              save
+            </v-btn>
+            <v-btn v-else color="accent" @click="saveEnrollment" class="px-6 ml-2">
+              <v-icon left>mdi-printer</v-icon>
+              print
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-text>
     </v-card>
 
-    <!-- Teaching Load Section -->
-    <v-card>
-      <v-card-title class="d-flex justify-space-between align-center">
-        <span>Teaching Schedule</span>
-        <div class="d-flex align-center">
-          <v-select
-            v-model="selectedSemester"
-            :items="['First', 'Second']"
-            label="Semester"
-            dense
-            outlined
-            hide-details
-            class="mr-2"
-            style="min-width: 120px"
-          ></v-select>
-          <v-select
-            v-model="selectedYear"
-            :items="academicYears"
-            label="Academic Year"
-            dense
-            outlined
-            hide-details
-            class="mr-2"
-            style="min-width: 150px"
-          ></v-select>
-          <v-btn color="primary" @click="openAddLoadDialog()" class="ml-2">
-            <v-icon left>mdi-plus</v-icon>
-            Add Subject
-          </v-btn>
-        </div>
+    <v-card class="mb-6 rounded-lg" elevation="2">
+      <v-card-title class="py-4 px-6">
+        <v-icon left color="primary" class="mr-2">mdi-information</v-icon>
+        Enrollment Information
+        <v-spacer></v-spacer>
+        <v-chip
+          :color="getStatusColor(currentEnrollment?.enrollmentStatus)"
+          :text-color="getStatusTextColor(currentEnrollment?.enrollmentStatus)"
+          label
+          pill
+          class="px-4"
+        >
+          <v-icon left small>{{
+            getStatusIcon(currentEnrollment?.enrollmentStatus)
+          }}</v-icon>
+          {{ currentEnrollment?.enrollmentStatus || "No Status" }}
+        </v-chip>
+      </v-card-title>
+
+      <v-divider></v-divider>
+
+      <v-card-text class="pa-6">
+        <v-row>
+          <v-col cols="12" md="3">
+            <div class="info-block">
+              <div class="caption grey--text">Enrollment Type</div>
+              <div class="text-h6 font-weight-medium text-capitalize">
+                {{ currentEnrollment?.enrollmentType || "N/A" }}
+              </div>
+            </div>
+          </v-col>
+          <v-col cols="12" md="3">
+            <div class="info-block">
+              <div class="caption grey--text">Year Level</div>
+              <div class="text-h6 font-weight-medium">
+                {{ currentEnrollment?.yearLevel || "N/A" }}
+              </div>
+            </div>
+          </v-col>
+          <v-col cols="12" md="3">
+            <div class="info-block">
+              <div class="caption grey--text">Registration Date</div>
+              <div class="text-h6 font-weight-medium">
+                {{ formatDate(currentEnrollment?.registrationDate) }}
+              </div>
+            </div>
+          </v-col>
+          <v-col cols="12" md="3">
+            <div class="info-block">
+              <div class="caption grey--text">Total Units</div>
+              <div class="text-h6 font-weight-medium">
+                {{ currentEnrollment?.totalUnits || 0 }}
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+
+    <v-tabs v-model="activeTab" class="mb-6" backgroundColor="white" grow>
+  <v-tab>
+    <v-icon left>mdi-book-multiple</v-icon>
+    Evaluated Subjects
+  </v-tab>
+  <v-tab>
+    <v-icon left>mdi-calendar-clock</v-icon>
+    Class Schedule
+  </v-tab>
+</v-tabs>
+
+<v-tabs-items v-model="activeTab">
+  <v-tab-item>
+    <v-card class="rounded-lg" elevation="2">
+      <v-card class="rounded-lg" elevation="2">
+      <v-card-title class="py-4 px-6">
+        <v-icon left color="primary" class="mr-2">mdi-book-multiple</v-icon>
+        Evaluated Subjects
+        <v-spacer></v-spacer>
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search subjects"
+          single-line
+          hide-details
+          outlined
+          dense
+          class="custom-search-field"
+          style="max-width: 300px"
+        ></v-text-field>
       </v-card-title>
 
       <v-data-table
-        :headers="teachingLoadHeaders"
-        :items="currentTeachingLoad.flatMap((load) => load.subjects)"
+        :headers="subjectHeaders"
+        :items="currentEnrollment?.subjects || []"
         :loading="loading"
-        class="mt-4"
+        :search="search"
+        class="elevation-0"
+        :footer-props="{
+          'items-per-page-options': [10, 20, 50],
+          'items-per-page-text': 'Subjects per page',
+        }"
       >
-        <template v-slot:item.schedule="{ item }">
-          <div v-for="(sched, index) in item.schedule" :key="index">
-            <div class="d-flex align-center">
-              <v-icon small class="mr-1">mdi-clock-outline</v-icon>
-              <span
-                >{{ sched.day }}: {{ formatTime(sched.timeStart) }} -
-                {{ formatTime(sched.timeEnd) }}</span
-              >
-            </div>
-            <div class="caption grey--text ml-4">Room: {{ sched.room }}</div>
+        <template v-slot:item.subject="{ item }">
+          <div class="d-flex flex-column">
+            <span class="font-weight-medium">{{
+              item.subject?.DescriptiveTitle
+            }}</span>
+            <span class="caption grey--text">{{ item.subject?.catNo }}</span>
           </div>
         </template>
 
-        <template v-slot:item.subject.name="{ item }">
-          <div class="font-weight-medium">
-            {{ item.subject?.DescriptiveTitle || "No Title" }}
-          </div>
-          <div class="caption grey--text">
-            {{ item.subject?.catNo || "No Code" }}
-          </div>
+        <template v-slot:item.units="{ item }">
+          <v-chip small outlined color="primary">
+            {{ item.subject?.units }} units
+          </v-chip>
         </template>
 
-        <template v-slot:item.students="{ item }">
-          <v-chip small> {{ (item.students || []).length }} students </v-chip>
-        </template>
-
-        <template v-slot:item.actions="{ item }">
+        <template v-if="currentEnrollment?.enrollmentStatus !== 'enrolled'"  v-slot:item.actions="{ item }">
           <v-btn
-            icon
             small
             color="primary"
+            outlined
+            @click="assignSubject(item)"
             class="mr-2"
-            @click="openAddLoadDialog(item)"
           >
-            <v-icon small>mdi-pencil</v-icon>
-          </v-btn>
-          <v-btn icon small color="error" @click="confirmDeleteSubject(item)">
-            <v-icon small>mdi-delete</v-icon>
+            <v-icon left small>mdi-account-plus</v-icon>
+            Assign
           </v-btn>
         </template>
       </v-data-table>
     </v-card>
 
-    <v-dialog v-model="addLoadDialog" max-width="800px">
-      <v-card>
-        <v-card-title class="headline">
-          {{ isEditing ? "Edit Subject Load" : "Add Subject Load" }}
-        </v-card-title>
-        <v-form ref="loadForm" v-model="loadFormValid">
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" sm="6">
-                <v-select
-                  v-model="newLoad.subject"
-                  :items="availableSubjects"
-                  item-text="DescriptiveTitle"
-                  item-value="_id"
-                  label="Subject"
-                  :rules="rules.required"
-                  :disabled="isEditing"
-                  outlined
-                >
-                  <template v-slot:selection="{ item }">
-                    {{ item?.DescriptiveTitle || "Select Subject" }}
-                    <span
-                      class="grey--text text-caption ml-2"
-                      v-if="item?.catNo"
-                    >
-                      ({{ item.catNo }})
-                    </span>
-                  </template>
-                  <template v-slot:item="{ item }">
-                    <v-list-item-content>
-                      <v-list-item-title>{{
-                        item?.DescriptiveTitle || "No Title"
-                      }}</v-list-item-title>
-                      <v-list-item-subtitle>{{
-                        item?.catNo || "No Code"
-                      }}</v-list-item-subtitle>
-                    </v-list-item-content>
-                  </template>
-                </v-select>
-              </v-col>
+    </v-card>
 
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="newLoad.section"
-                  label="Section"
-                  :rules="rules.required"
-                  outlined
-                ></v-text-field>
-              </v-col>
-            </v-row>
 
-            <div class="mb-4">
-              <div class="d-flex justify-space-between align-center mb-5">
-                <div class="subtitle-1">Schedule</div>
-                <v-btn small color="primary" @click="addScheduleSlot">
-                  <v-icon left small>mdi-plus</v-icon>
-                  Add Time Slot
-                </v-btn>
-              </div>
+    <v-card
+      class="mt-6 rounded-lg"
+      v-if="assignedTeacherLoads.length > 0"
+      elevation="2"
+    >
+      <v-card-title class="py-4 px-6">
+        <v-icon left color="primary" class="mr-2">mdi-account-group</v-icon>
+        Assigned Class Schedule
+        <v-chip class="ml-4" small color="primary" outlined>
+          {{ assignedTeacherLoads.length }} assignments
+        </v-chip>
+      </v-card-title>
 
-              <v-row
-                v-for="(slot, index) in newLoad.schedule"
-                :key="index"
-                class="mb-2"
-              >
-                <v-col cols="12" sm="3">
-                  <v-select
-                    v-model="slot.day"
-                    :items="days"
-                    label="Day"
-                    :rules="rules.required"
-                    dense
-                    outlined
-                  ></v-select>
-                </v-col>
-                <v-col cols="12" sm="3">
-                  <v-text-field
-                    v-model="slot.timeStart"
-                    label="Start Time"
-                    type="time"
-                    :rules="rules.required"
-                    dense
-                    outlined
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="3">
-                  <v-text-field
-                    v-model="slot.timeEnd"
-                    label="End Time"
-                    type="time"
-                    :rules="rules.required"
-                    dense
-                    outlined
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="2">
-                  <v-text-field
-                    v-model="slot.room"
-                    label="Room"
-                    :rules="rules.required"
-                    dense
-                    outlined
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="1" class="d-flex align-center">
-                  <v-btn
-                    icon
-                    small
-                    color="error"
-                    @click="removeScheduleSlot(index)"
-                    :disabled="index === 0 && newLoad.schedule.length === 1"
-                  >
-                    <v-icon small>mdi-delete</v-icon>
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </div>
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text @click="closeAddLoadDialog">Cancel</v-btn>
-            <v-btn
-              color="primary"
-              :loading="loading"
-              :disabled="!loadFormValid"
-              @click="submitLoad"
-            >
-              {{ isEditing ? "Save Changes" : "Add Subject" }}
-            </v-btn>
-          </v-card-actions>
-        </v-form>
-      </v-card>
-    </v-dialog>
-
-    <!-- Students List Dialog -->
-    <v-dialog v-model="studentsDialog" max-width="900px">
-      <v-card>
-        <v-card-title>
-          <span>Students List</span>
-          <v-spacer></v-spacer>
-          <v-text-field
-            v-model="studentSearch"
-            append-icon="mdi-magnify"
-            label="Search"
-            single-line
-            hide-details
-          ></v-text-field>
-        </v-card-title>
-
-        <v-data-table
-          :headers="studentHeaders"
-          :items="selectedSubjectStudents"
-          :search="studentSearch"
-          :loading="loading"
-          class="mt-4"
-        >
-          <template v-slot:item.name="{ item }">
-            {{ item.lastName }}, {{ item.firstName }}
-            {{ item.middleName || "" }}
-          </template>
-        </v-data-table>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="studentsDialog = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="deleteDialog" max-width="400">
-      <v-card>
-        <v-card-title class="headline error--text">
-          Confirm Delete
-        </v-card-title>
-        <v-card-text>
-          Are you sure you want to remove this subject from the teaching load?
-          <div class="mt-2">
-            <strong>{{ subjectToDelete?.subject?.name }}</strong>
-            <div class="caption grey--text">
-              Section: {{ subjectToDelete?.section }}
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" :loading="loading" @click="deleteSubject">
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="imageDialog" max-width="500px">
-      <v-card>
-        <v-card-title>Upload Profile Picture</v-card-title>
-        <v-card-text>
-          <v-img
-            v-if="previewImage"
-            :src="previewImage"
-            max-height="300"
-            contain
-            class="mb-4"
-          ></v-img>
-          <div v-else class="text-center pa-4">
-            <v-icon size="64" color="grey lighten-1">mdi-image</v-icon>
-            <div class="text-subtitle-1 grey--text mt-2">No image selected</div>
-          </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="cancelImageUpload">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            :loading="uploading"
-            :disabled="!previewImage"
-            @click="uploadImage"
+      <v-data-table
+        :headers="assignedTeacherHeaders"
+        :items="assignedTeacherLoads"
+        class="elevation-0"
+      >
+        <template v-slot:item.schedule="{ item }">
+          <div
+            v-for="(sched, index) in item.schedule"
+            :key="index"
+            class="schedule-item"
           >
-            Upload
+            <v-chip
+              x-small
+              label
+              class="mr-2"
+              color="secondary"
+              text-color="white"
+            >
+              {{ sched.day }}
+            </v-chip>
+            {{ sched.timeStart }} - {{ sched.timeEnd }}
+            <div class="caption grey--text">Room {{ sched.room }}</div>
+          </div>
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <v-btn
+            small
+            color="error"
+            text
+            @click="removeAssignment(item.subjectId)"
+          >
+            <v-icon left small>mdi-delete</v-icon>
+            Remove
           </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    </v-card>
+  </v-tab-item>
+
+  <v-tab-item>
+    <v-card class="rounded-lg" elevation="2">
+      <student-schedule
+        :student-id="$route.params.id"
+        :academic-year="selectedAcademicYear"
+        :semester="selectedSemester"
+      />
+    </v-card>
+  </v-tab-item>
+</v-tabs-items>
+
+
+    <!-- <student-schedule
+      :student-id="$route.params.id"
+      :academic-year="selectedAcademicYear"
+      :semester="selectedSemester"
+    /> -->
+
+    <v-dialog v-model="assignDialog" max-width="900px" scrollable>
+      <v-card>
+        <v-card-title class="primary white--text py-4 px-6">
+          <v-icon left color="white">mdi-account-tie</v-icon>
+          Assign Subject Teacher
+          <v-spacer></v-spacer>
+          <v-chip color="white" label text-color="primary">
+            {{ selectedSubject?.catNo }}
+          </v-chip>
+        </v-card-title>
+
+        <v-card-text class="pa-6">
+          <v-text-field
+            v-model="teacherSearch"
+            append-icon="mdi-magnify"
+            label="Search teachers"
+            outlined
+            dense
+            class="mb-4"
+          ></v-text-field>
+
+          <v-data-table
+            :headers="teacherLoadHeaders"
+            :items="teacherLoads"
+            :loading="loadingTeachers"
+            :search="teacherSearch"
+            class="elevation-1"
+          >
+            <template v-slot:item.professor="{ item }">
+              <div class="d-flex align-center">
+                <v-avatar size="32" color="primary" class="mr-2">
+                  <span class="white--text">
+                    {{ getInitials(item.professor?.name) }}
+                  </span>
+                </v-avatar>
+                <div>
+                  {{ item.professor?.name?.firstName }}
+                  {{ item.professor?.name?.surname }}
+                </div>
+              </div>
+            </template>
+
+            <template v-slot:item.schedule="{ item }">
+              <div
+                v-for="(sched, index) in item.schedule"
+                :key="index"
+                class="schedule-item"
+              >
+                <v-chip
+                  x-small
+                  label
+                  class="mr-2"
+                  color="secondary"
+                  text-color="white"
+                >
+                  {{ sched.day }}
+                </v-chip>
+                {{ sched.timeStart }} - {{ sched.timeEnd }}
+                <div class="caption grey--text">Room {{ sched.room }}</div>
+              </div>
+            </template>
+
+            <template v-slot:item.actions="{ item }">
+              <v-btn
+                small
+                color="primary"
+                @click="selectTeacherLoad(item)"
+                :disabled="item.isFull"
+              >
+                Select
+              </v-btn>
+            </template>
+          </v-data-table>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn text @click="closeAssignDialog">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <!-- Snackbar -->
-    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000" top>
-      {{ snackbarText }}
+    <!-- Error Snackbar -->
+    <v-snackbar v-model="showError" color="error" timeout="5000" bottom right>
+      {{ error }}
       <template v-slot:action="{ attrs }">
-        <v-btn text v-bind="attrs" @click="snackbar = false">Close</v-btn>
+        <v-btn text v-bind="attrs" @click="showError = false">Close</v-btn>
       </template>
     </v-snackbar>
   </v-container>
@@ -462,79 +462,46 @@
 <script>
 import { mapState, mapActions } from "vuex";
 import moment from "moment";
-
+import StudentSchedule from "../../components/StudentSchedule.vue"
 export default {
-  name: "ProfessorProfileView",
-
+  name: "EnrollmentView",
+  components: {
+    StudentSchedule,
+  },
   data: () => ({
-    selectedYear: "",
+    activeTab: 0,
+    selectedAcademicYear: "",
     selectedSemester: "First",
-    addLoadDialog: false,
-    studentsDialog: false,
-    deleteDialog: false,
-    imageDialog: false,
-    studentSearch: "",
-    loadFormValid: false,
-    uploading: false,
-    previewImage: null,
-    selectedFile: null,
-    subjectToDelete: null,
-    selectedSubjectStudents: [],
-    isEditing: false,
-    editingId: null,
-    newLoad: {
-      subject: null,
-      section: "",
-      schedule: [
-        {
-          day: "",
-          timeStart: "",
-          timeEnd: "",
-          room: "",
-        },
-      ],
-    },
-    teachingLoadHeaders: [
-      { text: "Subject", value: "subject.name", width: "25%" },
-      { text: "Schedule", value: "schedule", width: "35%" },
+    showError: false,
+    assignDialog: false,
+    selectedSubject: null,
+    teacherLoads: [],
+    loadingTeachers: false,
+    teacherLoadHeaders: [
+      { text: "Professor", value: "professor", width: "30%" },
+      { text: "Schedule", value: "schedule", width: "40%" },
       { text: "Section", value: "section", width: "15%" },
-      { text: "Students", value: "students", width: "15%" },
-      { text: "Actions", value: "actions", sortable: false, width: "10%" },
+      { text: "Actions", value: "actions", width: "15%" },
     ],
-    studentHeaders: [
-      { text: "Student ID", value: "studentId" },
-      { text: "Name", value: "name" },
-      { text: "Course", value: "course" },
-      { text: "Year Level", value: "yearLevel" },
+    assignedTeacherHeaders: [
+      { text: "Subject", value: "subjectCode", width: "20%" },
+      { text: "Professor", value: "professor", width: "25%" },
+      { text: "Section", value: "section", width: "15%" },
+      { text: "Schedule", value: "schedule", width: "30%" },
+      { text: "Actions", value: "actions", width: "10%" },
     ],
-    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    rules: {
-      required: [(v) => !!v || "This field is required"],
-      subject: [
-        (v) => (!!v && !!v.DescriptiveTitle) || "Please select a valid subject",
-      ],
-    },
-    snackbar: false,
-    snackbarColor: "",
-    snackbarText: "",
+    assignedTeacherLoads: [],
+    teacherSearch: "",
+    search: "",
   }),
 
   computed: {
     ...mapState({
-      professor: (state) => state.professors.currentProfessor,
-      teachingLoad: (state) => state.teacherLoad.teacherLoads,
-      subjects: (state) => state.subjects.subjects,
-      loading: (state) => state.professors.loading || state.teacherLoad.loading,
+      currentEnrollment: (state) => state.enrollments.currentEnrollment,
+      loading: (state) => state.enrollments.loading,
+      error: (state) => state.enrollments.error,
+      currentStudent: (state) => state.students.currentStudent,
     }),
-
-    professorFullName() {
-      if (!this.professor?.name) return "";
-      const { surname, firstName, middleName, nameExtension } =
-        this.professor.name;
-      return `${surname}, ${firstName} ${middleName || ""} ${
-        nameExtension ? nameExtension : ""
-      }`.trim();
-    },
 
     academicYears() {
       const currentYear = new Date().getFullYear();
@@ -544,434 +511,219 @@ export default {
       ];
     },
 
-    currentTeachingLoad() {
-      if (!this.teachingLoad || !Array.isArray(this.teachingLoad)) return [];
+    subjectHeaders() {
+    const baseHeaders = [
+      { text: "Subject", value: "catNo", width: "35%" },
+      { text: "Descriptive Title", value: "DescriptiveTitle", width: "35%" },
+      { text: "Units", value: "units", width: "30%" },
+    ];
 
-      return this.teachingLoad
-        .filter(
-          (load) =>
-            load.academicYear === this.selectedYear &&
-            load.semester === this.selectedSemester &&
-            load.status === "active"
-        )
-        .map((load) => ({
-          ...load,
-          subjects: (load.subjects || []).map((subj) => ({
-            ...subj,
-            subject: {
-              ...subj.subject,
-              DescriptiveTitle:
-                subj.subject?.DescriptiveTitle || "Untitled Subject",
-              catNo: subj.subject?.catNo || "No Code",
-            },
-            students: subj.students || [],
-          })),
-        }));
-    },
-    currentSemesterUnits() {
-      return this.currentTeachingLoad.reduce(
-        (total, load) => total + (load.totalUnits || 0),
-        0
-      );
-    },
+    if (this.currentEnrollment?.enrollmentStatus !== 'enrolled') {
+      baseHeaders.push({ text: "Actions", value: "actions", width: "15%" });
+      baseHeaders[2].width = "15%";
+    }
 
-    availableSubjects() {
-      if (!this.subjects || !Array.isArray(this.subjects)) return [];
-
-      const currentSubjectIds = this.currentTeachingLoad
-        ?.map((load) => load.subject?._id)
-        .filter((id) => id != null);
-
-      return this.subjects
-        .filter((subject) => subject && subject.DescriptiveTitle)
-        .filter((subject) => !currentSubjectIds.includes(subject._id))
-        .map((subject) => ({
-          ...subject,
-          DescriptiveTitle: subject.DescriptiveTitle || "Untitled Subject",
-          catNo: subject.catNo || "No Code",
-        }));
-    },
+    return baseHeaders;
+  }
   },
 
   methods: {
     ...mapActions({
-      fetchProfessor: "professors/fetchProfessor",
-      fetchProfessorTeacherLoads: "teacherLoad/fetchProfessorTeacherLoads",
-      createTeacherLoad: "teacherLoad/createTeacherLoad",
-      updateTeacherLoad: "teacherLoad/updateTeacherLoad",
-      deleteTeacherLoad: "teacherLoad/deleteTeacherLoad",
-      fetchSubjects: "subjects/fetchSubjects",
+      fetchStudentEnrollments: "enrollments/fetchStudentEnrollments",
+      fetchTeacherLoads: "teacherLoad/fetchTeacherLoads",
+      fetchStudent: "students/fetchStudent",
+      updateEnrollmentStatus: "enrollments/updateEnrollmentStatus",
+      updateTeacherLoadStudents: "teacherLoad/updateTeacherLoadStudents",
     }),
 
-    formatDate(date) {
-      return date ? moment(date).format("MMMM D, YYYY") : "N/A";
+    getStatusIcon(status) {
+      const icons = {
+        pending: "mdi-clock-outline",
+        evaluated: "mdi-clipboard-check-outline",
+        enrolled: "mdi-check-circle-outline",
+        rejected: "mdi-close-circle-outline",
+        cancelled: "mdi-cancel",
+        incomplete: "mdi-alert-circle-outline",
+        withdrawn: "mdi-logout-variant",
+        processing: "mdi-progress-clock",
+        waitlisted: "mdi-account-clock",
+        onhold: "mdi-pause-circle-outline",
+      };
+
+      return icons[status?.toLowerCase()] || "mdi-help-circle-outline";
     },
 
-    formatTime(time) {
-      return moment(time, "HH:mm").format("hh:mm A");
+    getStatusTextColor(status) {
+      const colors = {
+        pending: "white",
+        evaluated: "white",
+        enrolled: "white",
+      };
+      return colors[status] || "white";
+    },
+
+    getInitials(name) {
+      if (!name) return "NA";
+      return `${name.firstName?.[0] || ""}${
+        name.surname?.[0] || ""
+      }`.toUpperCase();
+    },
+
+    formatDate(date) {
+      return date ? moment(date).format("MMMM D, YYYY") : "Not provided";
     },
 
     getStatusColor(status) {
       const colors = {
+        pending: "warning",
+        evaluated: "info",
+        enrolled: "success",
         active: "success",
-        inactive: "grey",
-        "on-leave": "warning",
-        terminated: "error",
       };
       return colors[status] || "grey";
     },
 
-    triggerFileInput() {
-      this.$refs.fileInput.click();
+    getCourseDisplay(course) {
+      console.log(course);
+      return course?.courseName || "No course assigned";
     },
 
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+    async fetchEnrollment() {
+      if (!this.selectedAcademicYear || !this.selectedSemester) return;
 
-      if (!file.type.includes("image/")) {
-        this.showSnackbarMessage("Please select an image file", "error");
-        return;
-      }
-
-      this.selectedFile = file;
-      this.previewImage = URL.createObjectURL(file);
-      this.imageDialog = true;
-    },
-
-    async uploadImage() {
-      if (!this.selectedFile) return;
-
-      this.uploading = true;
       try {
-        const formData = new FormData();
-        formData.append("profilePicture", this.selectedFile);
-
-        await this.updateProfessorImage({
-          id: this.professor._id,
-          formData,
-        });
-
-        this.showSnackbarMessage(
-          "Profile picture updated successfully",
-          "success"
-        );
-        this.imageDialog = false;
-      } catch (error) {
-        this.showSnackbarMessage(
-          error.response?.data?.message || "Failed to update profile picture",
-          "error"
-        );
-      } finally {
-        this.uploading = false;
-      }
-    },
-
-    cancelImageUpload() {
-      this.imageDialog = false;
-      this.previewImage = null;
-      this.selectedFile = null;
-      this.$refs.fileInput.value = "";
-    },
-
-    openAddLoadDialog(item = null) {
-      this.isEditing = Boolean(item);
-      if (item) {
-        this.editingId = item._id;
-        this.newLoad = {
-          subject: item.subject?._id,
-          section: item.section || "",
-          schedule: Array.isArray(item.schedule)
-            ? JSON.parse(JSON.stringify(item.schedule))
-            : [
-                {
-                  day: "",
-                  timeStart: "",
-                  timeEnd: "",
-                  room: "",
-                },
-              ],
-        };
-      } else {
-        this.editingId = null;
-        this.resetLoadForm();
-      }
-      this.addLoadDialog = true;
-    },
-
-    closeAddLoadDialog() {
-      this.addLoadDialog = false;
-      this.isEditing = false;
-      this.editingId = null;
-      this.resetLoadForm();
-    },
-
-    resetLoadForm() {
-      this.newLoad = {
-        subject: null,
-        section: "",
-        schedule: [
-          {
-            day: "",
-            timeStart: "",
-            timeEnd: "",
-            room: "",
+        await this.fetchStudentEnrollments({
+          studentId: this.$route.params.id,
+          query: {
+            academicYear: this.selectedAcademicYear,
+            semester: this.selectedSemester,
           },
-        ],
+        });
+      } catch (error) {
+        this.showError = true;
+      }
+    },
+
+    async assignSubject(subject) {
+      this.selectedSubject = subject;
+      this.assignDialog = true;
+
+      console.log(subject);
+
+      const params = {
+        academicYear: this.selectedAcademicYear,
+        semester: this.selectedSemester,
+        yearLevel: this.currentEnrollment?.yearLevel,
+        subjectId: subject?._id,
       };
-      if (this.$refs.loadForm) {
-        this.$refs.loadForm.resetValidation();
-      }
-    },
-
-    addScheduleSlot() {
-      this.newLoad.schedule.push({
-        day: "",
-        timeStart: "",
-        timeEnd: "",
-        room: "",
-      });
-    },
-
-    removeScheduleSlot(index) {
-      this.newLoad.schedule.splice(index, 1);
-    },
-
-    async submitLoad() {
-      if (!this.$refs.loadForm.validate()) return;
 
       try {
-        console.log("Professor ID:", this.professor?._id); // Debug log
-
-        const payload = {
-          professor: this.professor?._id,
-          academicYear: this.selectedYear,
-          semester: this.selectedSemester,
-          subjects: [
-            {
-              subject: this.newLoad.subject,
-              section: this.newLoad.section,
-              schedule: this.newLoad.schedule.map((schedule) => ({
-                day: schedule.day,
-                timeStart: schedule.timeStart,
-                timeEnd: schedule.timeEnd,
-                room: schedule.room,
-              })),
-              students: [],
-            },
-          ],
-        };
-
-        const conflictResult = await this.$store.dispatch(
-          "teacherLoad/checkScheduleConflicts",
-          {
-            schedule: this.newLoad.schedule,
-            skipSubjectId: this.isEditing ? this.editingId : null,
-            professorId: payload.professor,
-          }
-        );
-
-        if (conflictResult.hasConflict) {
-          const { day, existingTime, room, professor, isSameProfessor } =
-            conflictResult.conflictDetails;
-          let conflictMessage = isSameProfessor
-            ? `You already have a class scheduled on ${day} at ${existingTime}`
-            : `Room ${room} is already occupied on ${day} at ${existingTime} by ${professor.name?.firstName} ${professor.name?.surname}`;
-
-          this.showSnackbarMessage(conflictMessage, "error");
-          return;
-        }
-
-        if (!payload.professor || !payload.subjects[0].subject) {
-          throw new Error("Missing required fields");
-        }
-
-        if (this.isEditing) {
-          console.log(this.isEditing);
-          const teacherLoad = this.currentTeachingLoad.find((load) =>
-            load.subjects.some((s) => s._id === this.editingId)
-          );
-
-          if (!teacherLoad) {
-            throw new Error("Teacher load not found");
-          }
-
-          const updatedSubjects = teacherLoad.subjects.map((subject) =>
-            subject._id === this.editingId
-              ? { ...subject, ...payload.subjects[0] }
-              : subject
-          );
-
-          await this.updateTeacherLoad({
-            id: teacherLoad._id,
-            data: {
-              ...teacherLoad,
-              subjects: updatedSubjects,
-            },
-          });
-
-          this.showSnackbarMessage("Schedule updated successfully", "success");
-        } else {
-          await this.createTeacherLoad(payload);
-          this.showSnackbarMessage(
-            "Subject added to teaching load successfully",
-            "success"
-          );
-        }
-
-        this.closeAddLoadDialog();
-        await this.fetchProfessorTeacherLoads(this.professor._id);
+        this.loadingTeachers = true;
+        const response = await this.fetchTeacherLoads(params);
+        console.log(response);
+        this.teacherLoads = response;
       } catch (error) {
-        console.error("Error submitting load:", error);
-        this.showSnackbarMessage(
-          error.response?.data?.message ||
-            `Failed to ${this.isEditing ? "update" : "add"} subject`,
-          "error"
-        );
+        console.error("Error fetching teacher loads:", error);
+        this.showError = true;
+      } finally {
+        this.loadingTeachers = false;
       }
     },
 
-    viewStudents(item) {
-      this.selectedSubjectStudents = item?.students || [];
-      this.studentsDialog = true;
+    selectTeacherLoad(teacherLoad) {
+      const assignment = {
+        teacherLoadId: teacherLoad._id,
+        professor: `${teacherLoad.professor?.name?.firstName} ${teacherLoad.professor?.name?.surname}`,
+        section: teacherLoad.section,
+        subjectId: this.selectedSubject?._id,
+        subjectCode: this.selectedSubject?.catNo,
+        schedule: teacherLoad.schedule,
+        professorsId: teacherLoad.professor._id,
+      };
+
+      const existingIndex = this.assignedTeacherLoads.findIndex(
+        (a) => a.subjectId === assignment.subjectId
+      );
+
+      if (existingIndex >= 0) {
+        this.assignedTeacherLoads[existingIndex] = assignment;
+      } else {
+        this.assignedTeacherLoads.push(assignment);
+      }
+
+      this.closeAssignDialog();
     },
 
-    confirmDeleteSubject(item) {
-      this.subjectToDelete = item;
-      this.deleteDialog = true;
-    },
-
-    async deleteSubject(subject) {
+    async saveEnrollment() {
       try {
-        const teacherLoad = this.currentTeachingLoad.find((load) =>
-          load.subjects.some((s) => s._id === subject._id)
-        );
+        await this.updateEnrollmentStatus(this.currentEnrollment._id);
 
-        if (!teacherLoad) {
-          throw new Error("Teacher load not found");
-        }
-
-        const updatedSubjects = teacherLoad.subjects.filter(
-          (s) => s._id !== subject._id
-        );
-
-        await this.updateTeacherLoad({
-          id: teacherLoad._id,
-          data: {
-            ...teacherLoad,
-            subjects: updatedSubjects,
-          },
+        await this.updateTeacherLoadStudents({
+          data: this.assignedTeacherLoads.map((assignment) => {
+            return {
+              teacherLoadId: assignment.teacherLoadId,
+              subjectId: assignment.subjectId,
+              studentId: this.currentStudent._id,
+            };
+          }),
         });
-
-        this.showSnackbarMessage("Subject removed successfully", "success");
-        this.deleteDialog = false;
-        await this.fetchProfessorTeacherLoads(this.professor._id);
       } catch (error) {
-        console.error("Error deleting subject:", error);
-        this.showSnackbarMessage(
-          error.response?.data?.message || "Failed to remove subject",
-          "error"
-        );
+        console.log(error);
       }
     },
-
-    showSnackbarMessage(text, color) {
-      this.snackbarText = text;
-      this.snackbarColor = color;
-      this.snackbar = true;
+    removeAssignment(subjectId) {
+      this.assignedTeacherLoads = this.assignedTeacherLoads.filter(
+        (assignment) => assignment.subjectId !== subjectId
+      );
     },
 
-    async loadInitialData() {
-      const professorId = this.$route.params.id;
-      if (!professorId) {
-        this.showSnackbarMessage("Invalid professor ID", "error");
-        return;
-      }
-
-      try {
-        await Promise.all([
-          this.fetchProfessor(professorId),
-          this.fetchProfessorTeacherLoads(professorId),
-          this.fetchSubjects(),
-        ]);
-        this.selectedYear = this.academicYears[0];
-      } catch (error) {
-        console.error("Error loading data:", error);
-        this.showSnackbarMessage("Failed to load data", "error");
-      }
+    closeAssignDialog() {
+      this.assignDialog = false;
+      this.selectedSubject = null;
+      this.teacherLoads = [];
     },
   },
 
-  created() {
-    this.loadInitialData();
+  async created() {
+    this.selectedAcademicYear = this.academicYears[1];
+    await this.fetchStudent(this.$route.params.id);
+    this.fetchEnrollment();
+  },
+
+  watch: {
+    error(val) {
+      if (val) this.showError = true;
+    },
   },
 };
 </script>
 
 <style scoped>
-.profile-header {
-  height: 100px;
-  background: linear-gradient(to right, #a52a2a, #d2691e);
+.info-block {
+  padding: 16px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  height: 100%;
 }
 
-.profile-picture-section {
-  margin-top: -50px;
-  padding-bottom: 20px;
+.schedule-item {
+  margin-bottom: 4px;
 }
 
-.profile-picture-container {
-  display: inline-block;
-  position: relative;
+.schedule-item:last-child {
+  margin-bottom: 0;
 }
 
-.profile-avatar {
-  border: 4px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.custom-search-field ::v-deep .v-input__slot {
+  min-height: 40px !important;
 }
 
-.change-photo-btn {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
+.v-avatar {
+  border: 3px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.v-list-item {
-  min-height: 48px !important;
-}
-
-.v-list-item__icon {
-  margin: 12px 16px 12px 0 !important;
-}
-
-@media (max-width: 960px) {
-  .profile-picture-section {
-    margin-top: -75px;
-  }
-
-  .profile-avatar {
-    width: 120px !important;
-    height: 120px !important;
-  }
-}
-
-@media (max-width: 600px) {
-  .profile-header {
-    height: 80px;
-  }
-
-  .profile-picture-section {
-    margin-top: -60px;
-  }
-
-  .profile-avatar {
-    width: 100px !important;
-    height: 100px !important;
-  }
-
-  .change-photo-btn {
-    transform: translateX(-50%) scale(0.8);
-  }
+.v-chip {
+  text-transform: capitalize;
 }
 </style>

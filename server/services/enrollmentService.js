@@ -1,4 +1,5 @@
 const Enrollment = require("../models/Enrollment");
+const EvaluatedSubject = require("../models/EvaluatedSubject");
 const StudentProfile = require("../models/StudentProfile");
 const AppError = require("../utils/appError");
 const mongoose = require("mongoose");
@@ -16,6 +17,7 @@ exports.enrollNewStudent = async (studentData, enrollmentData) => {
           ...enrollmentData,
           student: student[0]._id,
           enrollmentType: "new",
+          enrollmentStatus: "evaluated",
         },
       ],
       { session }
@@ -32,7 +34,6 @@ exports.enrollNewStudent = async (studentData, enrollmentData) => {
 };
 
 exports.enrollContinuingStudent = async (studentId, enrollmentData) => {
-  console.log(studentId, enrollmentData);
   const student = await StudentProfile.findById(studentId);
   if (!student) {
     throw new AppError("Student not found", 404);
@@ -48,13 +49,87 @@ exports.enrollContinuingStudent = async (studentId, enrollmentData) => {
     throw new AppError("Student already enrolled for this semester", 400);
   }
 
+  const previousEvaluations = await EvaluatedSubject.find()
+    .populate({
+      path: "enrollment",
+      match: { student: studentId },
+    })
+    .sort({ "enrollment.academicYear": -1, "enrollment.semester": -1 });
+
   const enrollment = await Enrollment.create({
     ...enrollmentData,
     student: studentId,
     enrollmentType: "old",
+    enrollmentStatus: "evaluated",
   });
 
-  return { student, enrollment };
+  return { student, enrollment, previousEvaluations };
+};
+
+exports.submitGrades = async (enrollmentId, gradesData) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const enrollment = await Enrollment.findById(enrollmentId);
+    if (!enrollment) {
+      throw new AppError("Enrollment not found", 404);
+    }
+
+    const evaluatedSubjects = await EvaluatedSubject.create(
+      gradesData.map((grade) => ({
+        enrollment: enrollmentId,
+        subject: grade.subject,
+        grade: grade.grade,
+        remarks: grade.remarks,
+        evaluatedBy: grade.evaluatedBy,
+      })),
+      { session }
+    );
+
+    enrollment.enrollmentStatus = "evaluated";
+    await enrollment.save({ session });
+
+    await session.commitTransaction();
+    return { enrollment, evaluatedSubjects };
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+exports.getStudentAcademicHistory = async (studentId) => {
+  const enrollments = await Enrollment.find({ student: studentId }).sort({
+    academicYear: -1,
+    semester: -1,
+  });
+
+  const evaluatedSubjects = await EvaluatedSubject.find()
+    .populate("subject")
+    .populate({
+      path: "enrollment",
+      match: { student: studentId },
+    })
+    .sort({ "enrollment.academicYear": -1, "enrollment.semester": -1 });
+
+  return { enrollments, evaluatedSubjects };
+};
+
+exports.getEnrollmentDetails = async (enrollmentId) => {
+  const enrollment = await Enrollment.findById(enrollmentId)
+    .populate("student")
+    .populate("course")
+    .populate("subjects");
+
+  const evaluatedSubjects = await EvaluatedSubject.find({
+    enrollment: enrollmentId,
+  })
+    .populate("subject")
+    .populate("evaluatedBy");
+
+  return { enrollment, evaluatedSubjects };
 };
 
 exports.validatePrerequisites = async (studentId, subjects) => {
@@ -146,11 +221,33 @@ exports.dropSubject = async (enrollmentId, subjectId) => {
   return enrollment;
 };
 
-exports.getEnrollmentsByStudent = async (studentId) => {
-  return await Enrollment.find({ student: studentId })
-    .populate("subjects.subject")
-    .populate("subjects.teacherLoad")
-    .sort({ academicYear: -1, semester: -1 });
+exports.getEnrollmentsByStudent = async (req, next) => {
+  const { studentId } = req.params;
+  const { academicYear, semester } = req.query;
+
+  if (!studentId) {
+    return next(new AppError("Student ID is required", 400));
+  }
+
+  if (!academicYear || !semester) {
+    return next(new AppError("Academic year and semester are required", 400));
+  }
+
+  const enrollment = await Enrollment.findOne({
+    student: studentId,
+    academicYear,
+    semester,
+  })
+    .populate("subjects")
+    .populate({
+      path: "subjects",
+    });
+
+  if (!enrollment) {
+    return [];
+  }
+
+  return enrollment;
 };
 
 exports.getEnrollmentDetails = async (enrollmentId) => {
@@ -161,15 +258,15 @@ exports.getEnrollmentDetails = async (enrollmentId) => {
     .populate("subjects.teacherLoad");
 };
 
-exports.updatePayment = async (enrollmentId, paymentData) => {
-  const enrollment = await Enrollment.findById(enrollmentId);
+exports.updateEnrollmentStatus = async (req) => {
+  const enrollment = await Enrollment.findByIdAndUpdate(
+    req.params.enrollmentId,
+    { $set: { enrollmentStatus: "enrolled" } },
+    { new: true }
+  );
+
   if (!enrollment) {
-    throw new AppError("Enrollment not found", 404);
+    return res.status(404).json({ message: "Enrollment not found" });
   }
-
-  enrollment.payments.push(paymentData);
-  enrollment.balance = enrollment.remainingBalance;
-  await enrollment.save();
-
   return enrollment;
 };

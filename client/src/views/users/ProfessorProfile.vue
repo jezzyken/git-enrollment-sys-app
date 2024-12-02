@@ -383,18 +383,69 @@
           :loading="loading"
           class="mt-4"
         >
-          <template v-slot:item.name.surname="{ item }">
-            {{ item.name.surname }}, {{ item.name.firstName }}
-            {{ item.name.middleName || "" }}
+          <template v-slot:item.course="{ item }">
+            {{ item.student?.course?.name }}
           </template>
-          <template v-slot:item.course.name="{ item }">
-            {{ getCourseInfo(item.course)?.courseName || "No Course" }}
+
+          <template v-slot:item.grades.final="{ item }">
+            <template v-if="editingStudent === item._id">
+              <v-text-field
+                v-model="item.grades.final"
+                type="number"
+                dense
+                outlined
+                hide-details
+                min="0"
+                max="100"
+                @input="updateRemarks(item)"
+              ></v-text-field>
+            </template>
+            <span v-else>{{ item.grades.final || "N/A" }}</span>
+          </template>
+
+          <template v-slot:item.grades.remarks="{ item }">
+            <v-chip
+              small
+              :color="item.grades.remarks === 'Passed' ? 'success' : 'error'"
+              text-color="white"
+            >
+              {{ item.grades.remarks || "N/A" }}
+            </v-chip>
+          </template>
+
+          <template v-slot:item.actions="{ item }">
+            <template v-if="editingStudent === item._id">
+              <v-btn icon small color="success" @click="editingStudent = null">
+                <v-icon>mdi-check</v-icon>
+              </v-btn>
+              <!-- <v-btn icon small color="error" @click="editingStudent = null">
+                <v-icon>mdi-close</v-icon>
+              </v-btn> -->
+            </template>
+            <v-btn
+              v-else
+              icon
+              small
+              color="primary"
+              @click="editingStudent = item._id"
+            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
           </template>
         </v-data-table>
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="studentsDialog = false">Close</v-btn>
+          <v-btn
+            v-if="hasGradeChanges && !editingStudent"
+            color="primary"
+            :loading="updating"
+            @click="updateAllGrades"
+            dark
+          >
+            Update All Grades
+          </v-btn>
+          <v-btn text @click="closeStudentsDialog">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -499,6 +550,7 @@ export default {
         },
       ],
     },
+    item: [],
     teachingLoadHeaders: [
       { text: "Subject", value: "subject.name", width: "25%" },
       { text: "Schedule", value: "schedule", width: "35%" },
@@ -507,10 +559,13 @@ export default {
       { text: "Actions", value: "actions", sortable: false, width: "10%" },
     ],
     studentHeaders: [
-      { text: "Student ID", value: "studentId" },
-      { text: "Name", value: "name.surname" },
-      { text: "Course", value: "course.name" },
-      { text: "Gender", value: "personalInfo.gender" },
+      { text: "Student ID", value: "student.studentId" },
+      { text: "Name", value: "student.fullName" },
+      { text: "Course", value: "student.course.courseCode" },
+      { text: "Final Grade", value: "grades.final" },
+      { text: "Remarks", value: "grades.remarks" },
+
+      { text: "Actions", value: "actions" },
     ],
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     rules: {
@@ -522,6 +577,8 @@ export default {
     snackbar: false,
     snackbarColor: "",
     snackbarText: "",
+    editingStudent: null,
+    updating: false,
   }),
 
   computed: {
@@ -598,6 +655,10 @@ export default {
           catNo: subject.catNo || "No Code",
         }));
     },
+
+    hasGradeChanges() {
+      return this.selectedSubjectStudents.some((s) => s.grades.final);
+    },
   },
 
   methods: {
@@ -606,6 +667,7 @@ export default {
       fetchProfessorTeacherLoads: "teacherLoad/fetchProfessorTeacherLoads",
       createTeacherLoad: "teacherLoad/createTeacherLoad",
       updateTeacherLoad: "teacherLoad/updateTeacherLoad",
+      updateStudentGrade: "teacherLoad/updateStudentGrade",
       deleteTeacherLoad: "teacherLoad/deleteTeacherLoad",
       fetchSubjects: "subjects/fetchSubjects",
       fetchCourses: "courses/fetchCourses",
@@ -631,6 +693,23 @@ export default {
         terminated: "error",
       };
       return colors[status] || "grey";
+    },
+
+    updateRemarks(item) {
+      const grade = parseFloat(item.grades.final);
+      if (!isNaN(grade)) {
+        item.grades.remarks = grade >= 75 ? "Passed" : "Failed";
+      } else {
+        item.grades.remarks = "N/A";
+      }
+    },
+
+    getRemarkColor(grade) {
+      return parseFloat(grade) >= 75 ? "success" : "error";
+    },
+
+    getRemarkText(grade) {
+      return parseFloat(grade) >= 75 ? "Passed" : "Failed";
     },
 
     triggerFileInput() {
@@ -709,6 +788,27 @@ export default {
         this.resetLoadForm();
       }
       this.addLoadDialog = true;
+    },
+
+    async updateAllGrades() {
+      this.updating = true;
+      try {
+
+        await this.updateStudentGrade({
+          teacherLoadId: this.currentTeachingLoad[0]._id,
+          subjectId: this.selectedSubjectId,
+          students: this.selectedSubjectStudents.map((student) => ({
+            student: student._id,
+            grades: student.grades,
+          })),
+        });
+
+        this.showSnackbarMessage("Grades updated successfully", "success");
+        this.studentsDialog = false;
+      } catch (error) {
+        this.showSnackbarMessage("Failed to update grades", "error");
+      }
+      this.updating = false;
     },
 
     closeAddLoadDialog() {
@@ -843,6 +943,7 @@ export default {
 
     viewStudents(item) {
       this.selectedSubjectStudents = item?.students || [];
+      this.selectedSubjectId = item._id;
       this.studentsDialog = true;
     },
 
@@ -910,6 +1011,13 @@ export default {
         console.error("Error loading data:", error);
         this.showSnackbarMessage("Failed to load data", "error");
       }
+    },
+
+    closeStudentsDialog() {
+      this.studentsDialog = false;
+      this.editingStudent = null;
+      this.selectedSubjectStudents = [];
+      this.selectedSubjectId = null;
     },
   },
 

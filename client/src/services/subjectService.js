@@ -1,8 +1,10 @@
 import api from './api';
 
 export default {
-  getAllSubjects() {
-    return api.get('/subject');
+  getAllSubjects(query) {
+    return api.get('/subject', {
+      params: query
+    });
   },
 
   getSubject(id) {

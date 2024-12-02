@@ -7,23 +7,23 @@ exports.enrollNewStudent = catchAsync(async (req, res) => {
     studentData,
     enrollmentData
   );
-  
+
   res.status(201).json({
     status: "success",
-    data: result
+    data: result,
   });
 });
 
 exports.enrollContinuingStudent = catchAsync(async (req, res) => {
-  console.log('studentId:', req.params.studentId, typeof req.params.studentId);
+  console.log("studentId:", req.params.studentId, typeof req.params.studentId);
   const result = await enrollmentService.enrollContinuingStudent(
     req.params.studentId,
     req.body
   );
-  
+
   res.status(201).json({
     status: "success",
-    data: result
+    data: result,
   });
 });
 
@@ -32,10 +32,10 @@ exports.addSubjects = catchAsync(async (req, res) => {
     req.params.enrollmentId,
     req.body.subjects
   );
-  
+
   res.status(200).json({
     status: "success",
-    data: { enrollment }
+    data: { enrollment },
   });
 });
 
@@ -44,22 +44,22 @@ exports.dropSubject = catchAsync(async (req, res) => {
     req.params.enrollmentId,
     req.params.subjectId
   );
-  
+
   res.status(200).json({
     status: "success",
-    data: { enrollment }
+    data: { enrollment },
   });
 });
 
-exports.getStudentEnrollments = catchAsync(async (req, res) => {
+exports.getStudentEnrollments = catchAsync(async (req, res, next) => {
   const enrollments = await enrollmentService.getEnrollmentsByStudent(
-    req.params.studentId
+    req,
+    next
   );
-  
   res.status(200).json({
     status: "success",
     results: enrollments.length,
-    data: { enrollments }
+    data: { enrollments },
   });
 });
 
@@ -67,21 +67,17 @@ exports.getEnrollmentDetails = catchAsync(async (req, res) => {
   const enrollment = await enrollmentService.getEnrollmentDetails(
     req.params.enrollmentId
   );
-  
+
   res.status(200).json({
     status: "success",
-    data: { enrollment }
+    data: { enrollment },
   });
 });
 
-exports.updatePayment = catchAsync(async (req, res) => {
-  const enrollment = await enrollmentService.updatePayment(
-    req.params.enrollmentId,
-    req.body
-  );
-  
+exports.updateEnrollmentStatus = catchAsync(async (req, res) => {
+  const enrollment = await enrollmentService.updateEnrollmentStatus(req);
   res.status(200).json({
     status: "success",
-    data: { enrollment }
+    data: { enrollment },
   });
 });

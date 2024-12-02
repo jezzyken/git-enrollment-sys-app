@@ -21,28 +21,11 @@ const userSchema = new Schema(
       sparse: true,
       unique: true,
     },
-    firstName: {
-      type: String,
+    role: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
     },
-    middleName: String,
-    lastName: {
-      type: String,
-    },
-    dateOfBirth: {
-      type: Date,
-    },
-    gender: {
-      type: String,
-      enum: ["Male", "Female"],
-    },
-    phoneNo: {
-      type: String,
-    },
-    roles: {
-      type: String,
-      enum: ["admin", "teacher", "student"],
-    },
-    isActive: {
+    isActive: { 
       type: Boolean,
       default: true,
     },
@@ -52,20 +35,5 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre("save", async function (next) {
-
-  if (this.roles === "student") {
-    this.email = undefined;
-  }
-
-  if (!this.isModified("password")) return next();
-
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
-
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
 
 module.exports = mongoose.model("User", userSchema);
