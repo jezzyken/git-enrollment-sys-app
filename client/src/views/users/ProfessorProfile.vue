@@ -579,6 +579,7 @@ export default {
     snackbarText: "",
     editingStudent: null,
     updating: false,
+    selectedTeacherLoadId: null,
   }),
 
   computed: {
@@ -698,7 +699,7 @@ export default {
     updateRemarks(item) {
       const grade = parseFloat(item.grades.final);
       if (!isNaN(grade)) {
-        item.grades.remarks = grade >= 75 ? "Passed" : "Failed";
+        item.grades.remarks = grade <= 3 ? "Passed" : "Failed";
       } else {
         item.grades.remarks = "N/A";
       }
@@ -791,11 +792,16 @@ export default {
     },
 
     async updateAllGrades() {
+
+      if (!this.selectedTeacherLoadId) {
+        this.showSnackbarMessage("Teacher load ID not found", "error");
+        return;
+      }
+
       this.updating = true;
       try {
-
         await this.updateStudentGrade({
-          teacherLoadId: this.currentTeachingLoad[0]._id,
+          teacherLoadId: this.selectedTeacherLoadId,
           subjectId: this.selectedSubjectId,
           students: this.selectedSubjectStudents.map((student) => ({
             student: student._id,
@@ -942,6 +948,11 @@ export default {
     },
 
     viewStudents(item) {
+      const teacherLoad = this.currentTeachingLoad.find((load) =>
+        load.subjects.some((subject) => subject._id === item._id)
+      );
+
+      this.selectedTeacherLoadId = teacherLoad?._id;
       this.selectedSubjectStudents = item?.students || [];
       this.selectedSubjectId = item._id;
       this.studentsDialog = true;
@@ -1018,6 +1029,7 @@ export default {
       this.editingStudent = null;
       this.selectedSubjectStudents = [];
       this.selectedSubjectId = null;
+      this.selectedTeacherLoadId = null;
     },
   },
 

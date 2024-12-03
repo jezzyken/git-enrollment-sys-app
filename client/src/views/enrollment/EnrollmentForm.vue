@@ -419,7 +419,7 @@
                           hide-default-footer
                         >
                           <template v-slot:item.grade="{ item }">
-                            <v-chip small :color="getGradeColor(item.grade)">
+                            <v-chip small outlined color="secondary">
                               {{ item.grade }}
                             </v-chip>
                           </template>
@@ -1184,7 +1184,10 @@ export default {
         }
 
         if (response.status === "success") {
-          this.$router.push("/enrollments");
+          this.showMessage("Enrollment successfully submitted!", "success");
+          this.resetForm();
+          this.currentStep = 1;
+          this.confirmEnrollment = false;
         }
       } catch (error) {
         console.error("Error submitting enrollment:", error);
@@ -1197,6 +1200,65 @@ export default {
       this.snackbar.text = text;
       this.snackbar.color = color;
       this.snackbar.show = true;
+    },
+
+    resetForm() {
+      this.enrollmentForm = {
+        enrollmentType: null,
+        student: null,
+        academicYear: "",
+        semester: "",
+        yearLevel: null,
+        course: null,
+        subjects: [],
+        requirements: {
+          form137: false,
+          goodMoral: false,
+          birthCertificate: false,
+          pictures: false,
+          transcriptOfRecords: false,
+        },
+      };
+
+      this.studentForm = {
+        name: {
+          surname: "",
+          firstName: "",
+          middleName: "",
+          nameExtension: "",
+        },
+        personalInfo: {
+          gender: null,
+        },
+        dateOfBirth: null,
+        homeAddress: "",
+      };
+
+      this.selectedStudent = null;
+      this.search = "";
+
+      this.subjects = [];
+      this.previousSubjects = [];
+
+      this.dateMenu = false;
+      this.loading = false;
+      this.confirmEnrollment = false;
+
+      if (this.$refs.form) {
+        this.$refs.form.resetValidation();
+        this.$refs.form.reset();
+      }
+
+      this.snackbar = {
+        show: false,
+        text: "",
+        color: "success",
+        timeout: 5000,
+      };
+
+      if (this.$refs.studentsTable) {
+        this.$refs.studentsTable.clearSelection();
+      }
     },
   },
 
@@ -1216,6 +1278,13 @@ export default {
   },
 
   watch: {
+    "enrollmentForm.enrollmentType"(newValue) {
+      if (newValue === "new") {
+        this.selectedStudent = null;
+        this.search = "";
+      }
+    },
+
     "enrollmentForm.semester": {
       async handler() {
         this.enrollmentForm.subjects = [];
@@ -1233,6 +1302,11 @@ export default {
         this.enrollmentForm.subjects = [];
         await this.fetchSubjects();
       },
+    },
+    currentStep(newValue) {
+      if (this.$refs.form) {
+        this.$refs.form.resetValidation();
+      }
     },
   },
 };

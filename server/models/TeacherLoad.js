@@ -66,8 +66,8 @@ const TeacherLoadSchema = new Schema(
             grades: {
               final: {
                 type: Number,
-                min: 0,
-                max: 100,
+                min: 1,
+                max: 5,
                 default: null,
               },
               remarks: {

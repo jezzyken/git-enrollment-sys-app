@@ -304,8 +304,9 @@ exports.updateStudentGrade = async (req, res) => {
     }
 
     const subject = teacherLoad.subjects.find(
-      (s) => s._id.toString() === subjectId
+      (s) => s._id.toString() === subjectId.toString()
     );
+
     if (!subject) {
       return res.status(404).json({
         success: false,

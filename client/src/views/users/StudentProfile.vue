@@ -682,12 +682,16 @@ export default {
       this.selectedSubject = null;
       this.teacherLoads = [];
     },
+
+    async initialized(){
+      this.selectedAcademicYear = this.academicYears[1];
+      await this.fetchStudent(this.$route.params.id);
+      this.fetchEnrollment();
+    },
   },
 
   async created() {
-    this.selectedAcademicYear = this.academicYears[1];
-    await this.fetchStudent(this.$route.params.id);
-    this.fetchEnrollment();
+      this.initialized()
   },
 
   watch: {
