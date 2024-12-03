@@ -17,6 +17,7 @@ const generateToken = (user) => {
 };
 
 const login = async (email, password) => {
+  console.log(email, password)
   const user = await User.findOne({ email }).select("+password");
 
   if (!user || !(await user.comparePassword(password))) {
