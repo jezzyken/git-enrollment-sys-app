@@ -87,7 +87,7 @@
               <v-col cols="12">
                 <v-text-field
                   v-model="editedItem.courseCode"
-                  label="Course Code"
+                  label="Course Abbreviation"
                   :error-messages="codeError"
                   required
                 ></v-text-field>
@@ -180,7 +180,7 @@ export default {
         sortable: true,
       },
       {
-        text: 'Course Code',
+        text: 'Course Abbreviation',
         value: 'courseCode',
         sortable: true,
       },
@@ -275,7 +275,7 @@ export default {
         isValid = false;
       }
       if (!this.editedItem.courseCode) {
-        this.codeError = 'Course code is required';
+        this.codeError = 'Course abbreviation is required';
         isValid = false;
       }
 

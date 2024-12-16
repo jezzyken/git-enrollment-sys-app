@@ -347,6 +347,24 @@
                           </v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
+                      <v-list-item>
+                        <v-list-item-action>
+                          <v-checkbox
+                            v-model="
+                              enrollmentForm.requirements.placementForm
+                            "
+                            color="primary"
+                          ></v-checkbox>
+                        </v-list-item-action>
+                        <v-list-item-content>
+                          <v-list-item-title
+                            >Placement Form</v-list-item-title
+                          >
+                          <v-list-item-subtitle>
+                           Student Evaluation
+                          </v-list-item-subtitle>
+                        </v-list-item-content>
+                      </v-list-item>
                     </v-list>
                   </v-col>
                 </v-row>

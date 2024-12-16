@@ -110,7 +110,7 @@
                   <v-text-field
                     v-model="form.catNo"
                     :rules="formRules.catNo"
-                    label="CAT No*"
+                    label="Course Code*"
                     required
                   ></v-text-field>
                 </v-col>
@@ -206,7 +206,7 @@
               {{ subjectToDelete?.DescriptiveTitle }}
             </div>
             <div class="caption text-medium-emphasis">
-              CAT No: {{ subjectToDelete?.catNo }}
+              Course Code: {{ subjectToDelete?.catNo }}
             </div>
           </div>
         </v-card-text>
@@ -268,11 +268,11 @@ export default {
     },
     formRules: {
       catNo: [
-        (v) => !!v || "CAT No is required",
-        (v) => (v && v.length >= 2) || "CAT No must be at least 2 characters",
+        (v) => !!v || "Course Code is required",
+        (v) => (v && v.length >= 2) || "Course Code must be at least 2 characters",
         (v) =>
           /^[A-Za-z0-9\s-]+$/.test(v) ||
-          "CAT No can only contain letters, numbers, spaces, and hyphens",
+          "Course Code can only contain letters, numbers, spaces, and hyphens",
       ],
       DescriptiveTitle: [
         (v) => !!v || "Descriptive title is required",
@@ -295,7 +295,7 @@ export default {
       ],
     },
     headers: [
-      { text: "CAT No", value: "catNo" },
+      { text: "Course Code", value: "catNo" },
       { text: "Descriptive Title", value: "DescriptiveTitle" },
       { text: "Units", value: "units" },
       { text: "Prerequisites", value: "prerequisites" },
@@ -470,7 +470,7 @@ export default {
 
         if (error.response?.data?.message) {
           if (error.response.data.message.includes("duplicate")) {
-            errorMessage = "A subject with this CAT No already exists.";
+            errorMessage = "A subject with this Course Code already exists.";
           } else {
             errorMessage = error.response.data.message;
           }

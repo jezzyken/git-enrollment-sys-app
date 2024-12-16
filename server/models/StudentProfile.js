@@ -82,6 +82,7 @@ const StudentProfileSchema = new Schema(
       birthCertificate: { type: Boolean, default: false },
       pictures: { type: Boolean, default: false },
       transcriptOfRecords: { type: Boolean, default: false },
+      placcemenForm: {type: Boolean, default: false}
     },
     role: {
       type: String,

@@ -1,16 +1,37 @@
 import api from './api';
+import { getCurrentAcademicYear } from '../utils/academicYear';
 
 export default {
-  getDashboardData() {
-    return api.get('/dashboard/data');
+  async getStats() {
+    const year = getCurrentAcademicYear();
+    return api.get('/dashboard/stats', {
+      params: { academicYear: year }
+    });
   },
-  getRecentActivities() {
-    return api.get('/dashboard/activities');
+
+  async getEnrollmentsByCourse() {
+    const year = getCurrentAcademicYear();
+    return api.get('/dashboard/enrollments/by-course', {
+      params: { academicYear: year }
+    });
   },
-  getWeeklyAttendance() {
-    return api.get('/dashboard/weekly-attendance');
+
+  async getTeacherLoads() {
+    const year = getCurrentAcademicYear();
+    return api.get('/dashboard/teacher-loads', {
+      params: { academicYear: year }
+    });
   },
-  getClassDistribution() {
-    return api.get('/dashboard/class-distribution');
+
+  getSubjectsDistribution() {
+    return api.get('/dashboard/subjects/distribution');
+  },
+
+  getProfessorsByDepartment() {
+    return api.get('/dashboard/professors/by-department');
+  },
+
+  getRecentEnrollments() {
+    return api.get('/dashboard/recent-enrollments');
   }
 };
