@@ -4,7 +4,7 @@
       <div class="school-info text-center">
         <p>Republic of the Philippines</p>
         <h2>GLAN INSTITUTE OF TECHNOLOGY</h2>
-        <p>Celebank, Glan, Sarangani Province</p>
+        <p>Calabanit, Glan, Sarangani Province</p>
       </div>
     </div>
 
