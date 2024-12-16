@@ -3,23 +3,15 @@
     <v-row class="mb-6">
       <v-col cols="12">
         <v-card class="rounded-lg" elevation="2">
-          <v-skeleton-loader
-            v-if="loading"
-            type="card-heading, list-item-three-line"
-          ></v-skeleton-loader>
+          <v-skeleton-loader v-if="loading" type="card-heading, list-item-three-line"></v-skeleton-loader>
 
           <template v-else>
             <v-row no-gutters>
-              <v-col
-                cols="12"
-                sm="2"
-                class="pa-4 d-flex justify-center align-center"
-              >
+              <v-col cols="12" sm="2" class="pa-4 d-flex justify-center align-center">
                 <v-avatar size="120" color="grey lighten-2">
                   <v-img
                     src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0hukRkoCl4HSLWAfbr5mvuFRaF2DOhmJQtQ&s"
-                    :alt="currentStudent?.name?.firstName"
-                  ></v-img>
+                    :alt="currentStudent?.name?.firstName"></v-img>
                   <!-- <span v-else class="text-h4 font-weight-medium">
                     {{ getInitials(currentStudent?.name) }}
                   </span> -->
@@ -31,26 +23,16 @@
                   <h1 class="text-h4 font-weight-medium">
                     {{ currentStudent?.name?.firstName }}
                     {{ currentStudent?.name?.surname }}
-                    <span
-                      v-if="currentStudent?.name?.nameExtension"
-                      class="text-subtitle-1"
-                    >
+                    <span v-if="currentStudent?.name?.nameExtension" class="text-subtitle-1">
                       {{ currentStudent?.name?.nameExtension }}
                     </span>
                   </h1>
-                  <v-chip
-                    class="ml-4"
-                    :color="getStatusColor(currentStudent?.accountStatus)"
-                    small
-                    label
-                  >
+                  <v-chip class="ml-4" :color="getStatusColor(currentStudent?.accountStatus)" small label>
                     {{ currentStudent?.accountStatus }}
                   </v-chip>
                 </div>
 
-                <div
-                  class="d-flex flex-wrap align-center grey--text text--darken-1"
-                >
+                <div class="d-flex flex-wrap align-center grey--text text--darken-1">
                   <div class="mr-4 mb-2">
                     <v-icon small class="mr-1">mdi-card-account-details</v-icon>
                     {{ currentStudent?.studentId || "No ID" }}
@@ -110,45 +92,25 @@
       <v-card-text>
         <v-row align="center">
           <v-col cols="12" sm="4">
-            <v-select
-              v-model="selectedAcademicYear"
-              :items="academicYears"
-              label="Academic Year"
-              outlined
-              dense
-              hide-details
-              prepend-inner-icon="mdi-calendar"
-              @change="fetchEnrollment"
-            ></v-select>
+            <v-select v-model="selectedAcademicYear" :items="academicYears" label="Academic Year" outlined dense
+              hide-details prepend-inner-icon="mdi-calendar" @change="fetchEnrollment"></v-select>
           </v-col>
           <v-col cols="12" sm="4">
-            <v-select
-              v-model="selectedSemester"
-              :items="['First', 'Second']"
-              label="Semester"
-              outlined
-              dense
-              hide-details
-              prepend-inner-icon="mdi-book-open-variant"
-              @change="fetchEnrollment"
-            ></v-select>
+            <v-select v-model="selectedSemester" :items="['First', 'Second']" label="Semester" outlined dense
+              hide-details prepend-inner-icon="mdi-book-open-variant" @change="fetchEnrollment"></v-select>
           </v-col>
           <v-col cols="12" sm="4" class="text-right">
-            <v-btn
-              color="primary"
-              @click="fetchEnrollment"
-              :loading="loading"
-              class="px-6"
-            >
+            <v-btn color="primary" @click="fetchEnrollment" :loading="loading" class="px-6">
               <v-icon left>mdi-refresh</v-icon>
               Refresh
             </v-btn>
 
-            <v-btn v-if="currentEnrollment?.enrollmentStatus !== 'enrolled'" color="success" @click="saveEnrollment" class="px-6 ml-2">
+            <v-btn v-if="currentEnrollment?.enrollmentStatus !== 'enrolled'" color="success" @click="saveEnrollment"
+              class="px-6 ml-2">
               <v-icon left>mdi-file</v-icon>
               save
             </v-btn>
-            <v-btn v-else color="accent" @click="saveEnrollment" class="px-6 ml-2">
+            <v-btn v-else color="accent" @click="onPrintItem" class="px-6 ml-2">
               <v-icon left>mdi-printer</v-icon>
               print
             </v-btn>
@@ -162,16 +124,11 @@
         <v-icon left color="primary" class="mr-2">mdi-information</v-icon>
         Enrollment Information
         <v-spacer></v-spacer>
-        <v-chip
-          :color="getStatusColor(currentEnrollment?.enrollmentStatus)"
-          :text-color="getStatusTextColor(currentEnrollment?.enrollmentStatus)"
-          label
-          pill
-          class="px-4"
-        >
+        <v-chip :color="getStatusColor(currentEnrollment?.enrollmentStatus)"
+          :text-color="getStatusTextColor(currentEnrollment?.enrollmentStatus)" label pill class="px-4">
           <v-icon left small>{{
             getStatusIcon(currentEnrollment?.enrollmentStatus)
-          }}</v-icon>
+            }}</v-icon>
           {{ currentEnrollment?.enrollmentStatus || "No Status" }}
         </v-chip>
       </v-card-title>
@@ -217,146 +174,100 @@
     </v-card>
 
     <v-tabs v-model="activeTab" class="mb-6" backgroundColor="white" grow>
-  <v-tab>
-    <v-icon left>mdi-book-multiple</v-icon>
-    Evaluated Subjects
-  </v-tab>
-  <v-tab>
-    <v-icon left>mdi-calendar-clock</v-icon>
-    Class Schedule
-  </v-tab>
-</v-tabs>
-
-<v-tabs-items v-model="activeTab">
-  <v-tab-item>
-    <v-card class="rounded-lg" elevation="2">
-      <v-card class="rounded-lg" elevation="2">
-      <v-card-title class="py-4 px-6">
-        <v-icon left color="primary" class="mr-2">mdi-book-multiple</v-icon>
+      <v-tab>
+        <v-icon left>mdi-book-multiple</v-icon>
         Evaluated Subjects
-        <v-spacer></v-spacer>
-        <v-text-field
-          v-model="search"
-          append-icon="mdi-magnify"
-          label="Search subjects"
-          single-line
-          hide-details
-          outlined
-          dense
-          class="custom-search-field"
-          style="max-width: 300px"
-        ></v-text-field>
-      </v-card-title>
+      </v-tab>
+      <v-tab>
+        <v-icon left>mdi-calendar-clock</v-icon>
+        Class Schedule
+      </v-tab>
+    </v-tabs>
 
-      <v-data-table
-        :headers="subjectHeaders"
-        :items="currentEnrollment?.subjects || []"
-        :loading="loading"
-        :search="search"
-        class="elevation-0"
-        :footer-props="{
-          'items-per-page-options': [10, 20, 50],
-          'items-per-page-text': 'Subjects per page',
-        }"
-      >
-        <template v-slot:item.subject="{ item }">
-          <div class="d-flex flex-column">
-            <span class="font-weight-medium">{{
-              item.subject?.DescriptiveTitle
-            }}</span>
-            <span class="caption grey--text">{{ item.subject?.catNo }}</span>
-          </div>
-        </template>
+    <v-tabs-items v-model="activeTab">
+      <v-tab-item>
+        <v-card class="rounded-lg" elevation="2">
+          <v-card class="rounded-lg" elevation="2">
+            <v-card-title class="py-4 px-6">
+              <v-icon left color="primary" class="mr-2">mdi-book-multiple</v-icon>
+              Evaluated Subjects
+              <v-spacer></v-spacer>
+              <v-text-field v-model="search" append-icon="mdi-magnify" label="Search subjects" single-line hide-details
+                outlined dense class="custom-search-field" style="max-width: 300px"></v-text-field>
+            </v-card-title>
 
-        <template v-slot:item.units="{ item }">
-          <v-chip small outlined color="primary">
-            {{ item.subject?.units }} units
-          </v-chip>
-        </template>
+            <v-data-table :headers="subjectHeaders" :items="currentEnrollment?.subjects || []" :loading="loading"
+              :search="search" class="elevation-0" :footer-props="{
+                'items-per-page-options': [10, 20, 50],
+                'items-per-page-text': 'Subjects per page',
+              }">
+              <template v-slot:item.subject="{ item }">
+                <div class="d-flex flex-column">
+                  <span class="font-weight-medium">{{
+                    item.subject?.DescriptiveTitle
+                    }}</span>
+                  <span class="caption grey--text">{{ item.subject?.catNo }}</span>
+                </div>
+              </template>
 
-        <template v-if="currentEnrollment?.enrollmentStatus !== 'enrolled'"  v-slot:item.actions="{ item }">
-          <v-btn
-            small
-            color="primary"
-            outlined
-            @click="assignSubject(item)"
-            class="mr-2"
-          >
-            <v-icon left small>mdi-account-plus</v-icon>
-            Assign
-          </v-btn>
-        </template>
-      </v-data-table>
-    </v-card>
+              <template v-slot:item.units="{ item }">
+                <v-chip small outlined color="primary">
+                  {{ item.subject?.units }} units
+                </v-chip>
+              </template>
 
-    </v-card>
+              <template v-if="currentEnrollment?.enrollmentStatus !== 'enrolled'" v-slot:item.actions="{ item }">
+                <v-btn small color="primary" outlined @click="assignSubject(item)" class="mr-2">
+                  <v-icon left small>mdi-account-plus</v-icon>
+                  Assign
+                </v-btn>
+              </template>
+            </v-data-table>
+          </v-card>
+
+        </v-card>
 
 
-    <v-card
-      class="mt-6 rounded-lg"
-      v-if="assignedTeacherLoads.length > 0"
-      elevation="2"
-    >
-      <v-card-title class="py-4 px-6">
-        <v-icon left color="primary" class="mr-2">mdi-account-group</v-icon>
-        Assigned Class Schedule
-        <v-chip class="ml-4" small color="primary" outlined>
-          {{ assignedTeacherLoads.length }} assignments
-        </v-chip>
-      </v-card-title>
-
-      <v-data-table
-        :headers="assignedTeacherHeaders"
-        :items="assignedTeacherLoads"
-        class="elevation-0"
-      >
-        <template v-slot:item.schedule="{ item }">
-          <div
-            v-for="(sched, index) in item.schedule"
-            :key="index"
-            class="schedule-item"
-          >
-            <v-chip
-              x-small
-              label
-              class="mr-2"
-              color="secondary"
-              text-color="white"
-            >
-              {{ sched.day }}
+        <v-card class="mt-6 rounded-lg" v-if="assignedTeacherLoads.length > 0" elevation="2">
+          <v-card-title class="py-4 px-6">
+            <v-icon left color="primary" class="mr-2">mdi-account-group</v-icon>
+            Assigned Class Schedule
+            <v-chip class="ml-4" small color="primary" outlined>
+              {{ assignedTeacherLoads.length }} assignments
             </v-chip>
-            {{ sched.timeStart }} - {{ sched.timeEnd }}
-            <div class="caption grey--text">Room {{ sched.room }}</div>
-          </div>
-        </template>
+          </v-card-title>
 
-        <template v-slot:item.actions="{ item }">
-          <v-btn
-            small
-            color="error"
-            text
-            @click="removeAssignment(item.subjectId)"
-          >
-            <v-icon left small>mdi-delete</v-icon>
-            Remove
-          </v-btn>
-        </template>
-      </v-data-table>
-    </v-card>
 
-    </v-card>
-  </v-tab-item>
+          <v-data-table :headers="assignedTeacherHeaders" :items="assignedTeacherLoads" class="elevation-0">
+            <template v-slot:item.schedule="{ item }">
+              <div v-for="(sched, index) in item.schedule" :key="index" class="schedule-item">
+                <v-chip x-small label class="mr-2" color="secondary" text-color="white">
+                  {{ sched.day }}
+                </v-chip>
+                {{ sched.timeStart }} - {{ sched.timeEnd }}
+                <div class="caption grey--text">Room {{ sched.room }}</div>
+              </div>
+            </template>
 
-  <v-tab-item>
-    <v-card class="rounded-lg" elevation="2">
-      <student-schedule
-        :student-id="$route.params.id"
-        :academic-year="selectedAcademicYear"
-        :semester="selectedSemester"
-      />
-    </v-card>
-  </v-tab-item>
-</v-tabs-items>
+            <template v-slot:item.actions="{ item }">
+              <v-btn small color="error" text @click="removeAssignment(item.subjectId)">
+                <v-icon left small>mdi-delete</v-icon>
+                Remove
+              </v-btn>
+            </template>
+          </v-data-table>
+        </v-card>
+
+        </v-card>
+      </v-tab-item>
+
+      <v-tab-item>
+        <v-card class="rounded-lg" elevation="2">
+          <student-schedule :student-id="$route.params.id" :academic-year="selectedAcademicYear"
+            :semester="selectedSemester" />
+        </v-card>
+      </v-tab-item>
+    </v-tabs-items>
 
 
     <!-- <student-schedule
@@ -377,22 +288,11 @@
         </v-card-title>
 
         <v-card-text class="pa-6">
-          <v-text-field
-            v-model="teacherSearch"
-            append-icon="mdi-magnify"
-            label="Search teachers"
-            outlined
-            dense
-            class="mb-4"
-          ></v-text-field>
+          <v-text-field v-model="teacherSearch" append-icon="mdi-magnify" label="Search teachers" outlined dense
+            class="mb-4"></v-text-field>
 
-          <v-data-table
-            :headers="teacherLoadHeaders"
-            :items="teacherLoads"
-            :loading="loadingTeachers"
-            :search="teacherSearch"
-            class="elevation-1"
-          >
+          <v-data-table :headers="teacherLoadHeaders" :items="teacherLoads" :loading="loadingTeachers"
+            :search="teacherSearch" class="elevation-1">
             <template v-slot:item.professor="{ item }">
               <div class="d-flex align-center">
                 <v-avatar size="32" color="primary" class="mr-2">
@@ -408,18 +308,8 @@
             </template>
 
             <template v-slot:item.schedule="{ item }">
-              <div
-                v-for="(sched, index) in item.schedule"
-                :key="index"
-                class="schedule-item"
-              >
-                <v-chip
-                  x-small
-                  label
-                  class="mr-2"
-                  color="secondary"
-                  text-color="white"
-                >
+              <div v-for="(sched, index) in item.schedule" :key="index" class="schedule-item">
+                <v-chip x-small label class="mr-2" color="secondary" text-color="white">
                   {{ sched.day }}
                 </v-chip>
                 {{ sched.timeStart }} - {{ sched.timeEnd }}
@@ -428,12 +318,7 @@
             </template>
 
             <template v-slot:item.actions="{ item }">
-              <v-btn
-                small
-                color="primary"
-                @click="selectTeacherLoad(item)"
-                :disabled="item.isFull"
-              >
+              <v-btn small color="primary" @click="selectTeacherLoad(item)" :disabled="item.isFull">
                 Select
               </v-btn>
             </template>
@@ -449,7 +334,15 @@
       </v-card>
     </v-dialog>
 
-    <!-- Error Snackbar -->
+    <registration-form-print
+      ref="registrationFormPrint"
+      :student="currentStudent"
+      :enrollment="currentEnrollment"
+      :schedules="getStudentSchedule.schedule"
+      :merged-schedules="mergedSchedules"
+     v-if="currentEnrollment && showRegistrationForm"
+    />
+
     <v-snackbar v-model="showError" color="error" timeout="5000" bottom right>
       {{ error }}
       <template v-slot:action="{ attrs }">
@@ -460,13 +353,16 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 import moment from "moment";
 import StudentSchedule from "../../components/StudentSchedule.vue"
+import RegistrationFormPrint from "../../components/RegistrationFormPrint.vue"
+
 export default {
   name: "EnrollmentView",
   components: {
     StudentSchedule,
+    RegistrationFormPrint
   },
   data: () => ({
     activeTab: 0,
@@ -493,6 +389,7 @@ export default {
     assignedTeacherLoads: [],
     teacherSearch: "",
     search: "",
+    showRegistrationForm: false,
   }),
 
   computed: {
@@ -501,6 +398,10 @@ export default {
       loading: (state) => state.enrollments.loading,
       error: (state) => state.enrollments.error,
       currentStudent: (state) => state.students.currentStudent,
+    }),
+
+    ...mapGetters({
+      getStudentSchedule: "teacherLoad/getStudentSchedule"
     }),
 
     academicYears() {
@@ -512,19 +413,28 @@ export default {
     },
 
     subjectHeaders() {
-    const baseHeaders = [
-      { text: "Subject", value: "catNo", width: "35%" },
-      { text: "Descriptive Title", value: "DescriptiveTitle", width: "35%" },
-      { text: "Units", value: "units", width: "30%" },
-    ];
+      const baseHeaders = [
+        { text: "Subject", value: "catNo", width: "35%" },
+        { text: "Descriptive Title", value: "DescriptiveTitle", width: "35%" },
+        { text: "Units", value: "units", width: "30%" },
+      ];
 
-    if (this.currentEnrollment?.enrollmentStatus !== 'enrolled') {
-      baseHeaders.push({ text: "Actions", value: "actions", width: "15%" });
-      baseHeaders[2].width = "15%";
+      if (this.currentEnrollment?.enrollmentStatus !== 'enrolled') {
+        baseHeaders.push({ text: "Actions", value: "actions", width: "15%" });
+        baseHeaders[2].width = "15%";
+      }
+
+      return baseHeaders;
+    },
+    mergedSchedules() {
+    if (!this.currentEnrollment || !this.getStudentSchedule.schedule) {
+      return [];
     }
-
-    return baseHeaders;
-  }
+    return this.mergeSchedulesBySubjectCode(
+      this.currentEnrollment,
+      this.getStudentSchedule.schedule
+    );
+  },
   },
 
   methods: {
@@ -534,6 +444,7 @@ export default {
       fetchStudent: "students/fetchStudent",
       updateEnrollmentStatus: "enrollments/updateEnrollmentStatus",
       updateTeacherLoadStudents: "teacherLoad/updateTeacherLoadStudents",
+      fetchStudentSchedule: "teacherLoad/fetchStudentSchedule",
     }),
 
     getStatusIcon(status) {
@@ -564,9 +475,8 @@ export default {
 
     getInitials(name) {
       if (!name) return "NA";
-      return `${name.firstName?.[0] || ""}${
-        name.surname?.[0] || ""
-      }`.toUpperCase();
+      return `${name.firstName?.[0] || ""}${name.surname?.[0] || ""
+        }`.toUpperCase();
     },
 
     formatDate(date) {
@@ -677,21 +587,69 @@ export default {
       );
     },
 
+    async onPrintItem() {
+      this.showRegistrationForm = true;
+      await this.$nextTick();
+      const mergedSchedules = this.mergeSchedulesBySubjectCode(
+        this.currentEnrollment, 
+        this.getStudentSchedule.schedule
+      );
+      
+      const printDialog = this.$refs.registrationFormPrint;
+      if (printDialog) {
+        await printDialog.generatePDF();
+      }
+      this.showRegistrationForm = false;
+    },
+
+    mergeSchedulesBySubjectCode(enrollment, classSchedules) {
+      const evaluatedSubjects = enrollment.subjects.map(subject => ({
+        catNo: subject.catNo,
+        DescriptiveTitle: subject.DescriptiveTitle,
+        units: subject.units,
+        schedule: null,
+        grades: null,
+        section: null,
+        professor: null,
+      }));
+
+      const mergedSchedules = evaluatedSubjects.map(subject => {
+        const matchingSchedule = classSchedules.find(
+          schedule => schedule.subjectCode === subject.catNo
+        );
+
+        return {
+          ...subject,
+          schedule: matchingSchedule?.schedule || null,
+          grades: matchingSchedule?.grades || null,
+          section: matchingSchedule?.section || null,
+          professor: matchingSchedule?.professor || null,
+        };
+      });
+
+      return mergedSchedules;
+    },
+
     closeAssignDialog() {
       this.assignDialog = false;
       this.selectedSubject = null;
       this.teacherLoads = [];
     },
 
-    async initialized(){
+    async initialized() {
       this.selectedAcademicYear = this.academicYears[1];
       await this.fetchStudent(this.$route.params.id);
+      await this.fetchStudentSchedule({
+        studentId: this.$route.params.id,
+        academicYear: this.selectedAcademicYear,
+        semester: this.selectedSemester,
+      });
       this.fetchEnrollment();
     },
   },
 
   async created() {
-      this.initialized()
+    this.initialized()
   },
 
   watch: {

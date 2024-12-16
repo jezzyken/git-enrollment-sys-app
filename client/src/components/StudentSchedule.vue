@@ -8,7 +8,6 @@
         {{ schedule?.length || 0 }} Classes
       </v-chip>
     </v-card-title>
-
     <v-data-table
       :headers="scheduleHeaders"
       :items="schedule"
@@ -108,8 +107,6 @@ export default {
           academicYear: this.academicYear,
           semester: this.semester,
         });
-
-        console.log(response)
 
         if (response?.data?.data.schedule) {
           this.schedule = response.data.data.schedule;
