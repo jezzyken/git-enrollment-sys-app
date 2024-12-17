@@ -52,6 +52,9 @@ const EnrollmentSchema = new Schema(
       type: Date,
       default: Date.now(),
     },
+    section: {
+      type: String,
+    },
   },
   {
     timestamps: true,

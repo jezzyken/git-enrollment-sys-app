@@ -350,18 +350,14 @@
                       <v-list-item>
                         <v-list-item-action>
                           <v-checkbox
-                            v-model="
-                              enrollmentForm.requirements.placementForm
-                            "
+                            v-model="enrollmentForm.requirements.placementForm"
                             color="primary"
                           ></v-checkbox>
                         </v-list-item-action>
                         <v-list-item-content>
-                          <v-list-item-title
-                            >Placement Form</v-list-item-title
-                          >
+                          <v-list-item-title>Placement Form</v-list-item-title>
                           <v-list-item-subtitle>
-                           Student Evaluation
+                            Student Evaluation
                           </v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
@@ -408,6 +404,16 @@
                       dense
                       required
                     ></v-select>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="enrollmentForm.section"
+                      label="Section*"
+                      outlined
+                      dense
+                      required
+                      placeholder="Enter section"
+                    ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-select
@@ -655,6 +661,14 @@
                             <div class="info-label">Year Level</div>
                             <div class="info-value">
                               {{ enrollmentForm.yearLevel }}
+                            </div>
+                          </div>
+                        </v-col>
+                        <v-col cols="12" sm="6" md="4">
+                          <div class="info-item">
+                            <div class="info-label">Section</div>
+                            <div class="info-value">
+                              {{ enrollmentForm.section }}
                             </div>
                           </div>
                         </v-col>
@@ -942,6 +956,7 @@ export default {
       semester: "",
       yearLevel: null,
       course: null,
+      section: "",
       subjects: [],
       requirements: {
         form137: false,
@@ -1228,6 +1243,7 @@ export default {
         semester: "",
         yearLevel: null,
         course: null,
+        section: "",
         subjects: [],
         requirements: {
           form137: false,
