@@ -219,7 +219,7 @@ export default {
         datasets: [
           {
             label: "Total Students",
-            backgroundColor: "#1976D2",
+            backgroundColor: "#b22222",
             data: this.enrollmentsByCourse.map((item) => item.totalStudents),
           },
         ],
@@ -297,7 +297,7 @@ export default {
 }
 
 .stats-card-1 {
-  background: linear-gradient(135deg, #1976D2 0%, #64B5F6 100%);
+  background: linear-gradient(135deg, #b22222 0%, #a52a2a 100%);
 }
 
 .stats-card-2 {

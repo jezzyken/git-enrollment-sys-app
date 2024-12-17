@@ -1,79 +1,66 @@
-// store/modules/reports.js
-import ReportService from "@/services/reportService";
+import reportService from "@/services/reportService";
 
 export default {
   namespaced: true,
 
   state: {
-    scheduleReports: {
-      data: [],
-      total: 0,
-    },
+    enrollmentStats: [],
+    teacherLoads: [],
+    studentGrades: null,
+    subjectStats: [],
+    departmentFaculty: [],
     loading: false,
     error: null,
-    filters: {
-      course: null,
-      subject: null,
-      teacher: null,
-      weekDay: null,
-      startTime: null,
-      endTime: null,
-    },
+  },
+
+  getters: {
+    enrollmentStats: (state) => state.enrollmentStats,
+    teacherLoads: (state) => state.teacherLoads,
+    studentGrades: (state) => state.studentGrades,
+    subjectStats: (state) => state.subjectStats,
+    departmentFaculty: (state) => state.departmentFaculty,
+    loading: (state) => state.loading,
+    error: (state) => state.error,
   },
 
   mutations: {
-    SET_SCHEDULE_REPORTS(state, { schedules, total }) {
-      state.scheduleReports.data = schedules;
-      state.scheduleReports.total = total;
+    SET_ENROLLMENT_STATS(state, stats) {
+      state.enrollmentStats = stats;
     },
-    SET_LOADING(state, status) {
-      state.loading = status;
+    SET_TEACHER_LOADS(state, loads) {
+      state.teacherLoads = loads;
+    },
+    SET_STUDENT_GRADES(state, grades) {
+      state.studentGrades = grades;
+    },
+    SET_SUBJECT_STATS(state, stats) {
+      state.subjectStats = stats;
+    },
+    SET_DEPARTMENT_FACULTY(state, faculty) {
+      state.departmentFaculty = faculty;
+    },
+    SET_LOADING(state, loading) {
+      state.loading = loading;
     },
     SET_ERROR(state, error) {
       state.error = error;
     },
-    SET_FILTERS(state, filters) {
-      state.filters = { ...state.filters, ...filters };
-    },
-    RESET_FILTERS(state) {
-      state.filters = {
-        course: null,
-        subject: null,
-        teacher: null,
-        weekDay: null,
-        startTime: null,
-        endTime: null,
-      };
+    CLEAR_ERROR(state) {
+      state.error = null;
     },
   },
 
   actions: {
-    async fetchScheduleReports({ commit, state }) {
-      commit("SET_LOADING", true);
-      commit("SET_ERROR", null);
-
+    async fetchEnrollmentStatistics({ commit }, { academicYear, semester }) {
       try {
-        const params = {};
-
-        if (state.filters.course) params.course = state.filters.course;
-        if (state.filters.subject) params.subject = state.filters.subject;
-        if (state.filters.teacher)
-          params.teacher = state.filters.teacher._id || state.filters.teacher;
-        if (state.filters.weekDay) params.weekDay = state.filters.weekDay;
-        if (state.filters.startTime) params.startTime = state.filters.startTime;
-        if (state.filters.endTime) params.endTime = state.filters.endTime;
-
-        const response = await ReportService.getScheduleReports(params);
-
-        commit("SET_SCHEDULE_REPORTS", {
-          schedules: response.data.data.schedules,
-          total: response.data.data.total,
-        });
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await reportService.getEnrollmentStatistics(academicYear, semester);
+        commit("SET_ENROLLMENT_STATS", response.data);
       } catch (error) {
-        console.error("Report fetch error:", error);
         commit(
           "SET_ERROR",
-          error.response?.data?.message || "Failed to fetch schedule reports"
+          error.response?.data?.message || "Failed to fetch enrollment statistics"
         );
         throw error;
       } finally {
@@ -81,31 +68,72 @@ export default {
       }
     },
 
-    updateFilters({ commit, dispatch }, filters) {
-      const cleanFilters = {
-        course: filters.course,
-        subject: filters.subject,
-        teacher: filters.teacher?._id || filters.teacher,
-        weekDay: filters.weekDay,
-        startTime: filters.startTime,
-        endTime: filters.endTime,
-      };
-
-      commit("SET_FILTERS", cleanFilters);
-      return dispatch("fetchScheduleReports");
+    async fetchTeacherLoads({ commit }, { academicYear, semester }) {
+      try {
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await reportService.getTeacherLoads(academicYear, semester);
+        commit("SET_TEACHER_LOADS", response.data);
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message || "Failed to fetch teacher loads"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
     },
 
-    resetFilters({ commit, dispatch }) {
-      commit("RESET_FILTERS");
-      return dispatch("fetchScheduleReports");
+    async fetchStudentGrades({ commit }, { studentId, academicYear, semester }) {
+      try {
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await reportService.getStudentGrades(studentId, academicYear, semester);
+        commit("SET_STUDENT_GRADES", response.data);
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message || "Failed to fetch student grades"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
     },
-  },
 
-  getters: {
-    getScheduleReports: (state) => state.scheduleReports.data,
-    getTotalReports: (state) => state.scheduleReports.total,
-    getLoading: (state) => state.loading,
-    getError: (state) => state.error,
-    getFilters: (state) => state.filters,
+    async fetchSubjectStatistics({ commit }, { academicYear, semester }) {
+      try {
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await reportService.getSubjectStatistics(academicYear, semester);
+        commit("SET_SUBJECT_STATS", response.data);
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message || "Failed to fetch subject statistics"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
+    async fetchDepartmentFaculty({ commit }) {
+      try {
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await reportService.getDepartmentFaculty();
+        commit("SET_DEPARTMENT_FACULTY", response.data);
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message || "Failed to fetch department faculty"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
   },
 };
