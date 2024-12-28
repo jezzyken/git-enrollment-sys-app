@@ -7,18 +7,6 @@ const RoleSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      enum: ["student", "admin", "faculty", "registrar"],
-    },
-    permissions: [
-      {
-        type: String,
-        enum: ["read", "write", "update", "delete"],
-      },
-    ],
-    description: String,
-    isActive: {
-      type: Boolean,
-      default: true,
     },
   },
   {

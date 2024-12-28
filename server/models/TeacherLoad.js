@@ -5,7 +5,7 @@ const TeacherLoadSchema = new Schema(
   {
     professor: {
       type: Schema.Types.ObjectId,
-      ref: "Professor",
+      ref: "User",
       required: true,
     },
     academicYear: {

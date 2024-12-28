@@ -12,6 +12,7 @@ import teacherLoad from "./modules/teacherLoad";
 import schedules from "./modules/schedules";
 import reports from "./modules/reports";
 import enrollments from "./modules/enrollments";
+import roles from "./modules/roles";
 
 Vue.use(Vuex);
 
@@ -29,5 +30,6 @@ export default new Vuex.Store({
     schedules,
     reports,
     enrollments,
+    roles
   },
 });

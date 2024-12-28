@@ -105,29 +105,29 @@ async function generateStudentId() {
   return `${currentYear}-${sequence.toString().padStart(4, "0")}`;
 }
 
-StudentProfileSchema.pre("save", async function (next) {
-  try {
-    if (!this.studentId) {
-      this.studentId = await generateStudentId();
-      console.log(this.studentId);
-    }
+// StudentProfileSchema.pre("save", async function (next) {
+//   try {
+//     if (!this.studentId) {
+//       this.studentId = await generateStudentId();
+//       console.log(this.studentId);
+//     }
 
-    if (this.isNew) {
-      let studentRole = await Role.findOne({ name: "student" });
-      if (!studentRole) {
-        studentRole = await Role.create({
-          name: "student",
-          permissions: ["read"],
-          description: "Regular student access",
-        });
-      }
-      this.role = "student";
-    }
-  } catch (error) {
-    return next(error);
-  }
-  next();
-});
+//     if (this.isNew) {
+//       let studentRole = await Role.findOne({ name: "student" });
+//       if (!studentRole) {
+//         studentRole = await Role.create({
+//           name: "student",
+//           permissions: ["read"],
+//           description: "Regular student access",
+//         });
+//       }
+//       this.role = "student";
+//     }
+//   } catch (error) {
+//     return next(error);
+//   }
+//   next();
+// });
 
 StudentProfileSchema.virtual("enrollments", {
   ref: "Enrollment",

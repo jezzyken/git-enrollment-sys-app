@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Enrollment = require('../../models/Enrollment');
 const TeacherLoad = require('../../models/TeacherLoad');
-const Professor = require('../../models/Professor');
+const Professor = require('../../models/User');
 const Subject = require('../../models/Subject');
 const Course = require('../../models/Course');
 
@@ -96,7 +96,7 @@ router.get('/teacher-loads', async (req, res) => {
             },
             {
                 $lookup: {
-                    from: 'professors',
+                    from: 'users',
                     localField: 'professor',
                     foreignField: '_id',
                     as: 'professorInfo'

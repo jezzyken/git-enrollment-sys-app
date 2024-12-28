@@ -10,12 +10,6 @@ const ProfessorSchema = new Schema(
       middleName: String,
       nameExtension: String,
     },
-    role: {
-      type: String,
-      default: "faculty",
-      enum: ["faculty"],
-      required: true,
-    },
     employeeId: {
       type: String,
       required: true,

@@ -17,23 +17,36 @@ const generateToken = (user) => {
 };
 
 const login = async (email, password) => {
-  console.log(email, password)
-  const user = await User.findOne({ email }).select("+password");
+  console.log("Login attempt:", email);
+  
+  if (!email || !password) {
+    throw new AppError("Please provide email and password", 400);
+  }
 
-  if (!user || !(await user.comparePassword(password))) {
-    throw new AppError("Incorrect email or password", 401);
+  const user = await User.findOne({ email })
+    .select("+password")
+    .populate("role");
+  console.log("User found:", user ? "yes" : "no");
+
+  if (!user) {
+    throw new AppError("No user found with this email", 401);
+  }
+
+  if (user.accountStatus === "inactive") {
+    throw new AppError("Your account is inactive", 401);
+  }
+
+  const isPasswordValid = await user.comparePassword(password);
+  console.log("Password valid:", isPasswordValid);
+  
+  if (!isPasswordValid) {
+    throw new AppError("Incorrect password", 401);
   }
 
   user.password = undefined;
-
-  // let teacher = null;
-
-  // if (user.roles === "teacher") {
-  //   teacher = await Teacher.findOne({ user: user._id });
-  // }
-
   const token = generateToken(user);
-
+  
+  console.log("Login successful");
   return {
     user,
     token,

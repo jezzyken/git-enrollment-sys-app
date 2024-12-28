@@ -7,12 +7,12 @@ const router = express.Router();
 router
   .route("/")
   .get(departmentController.getAllDepartments)
-  .post(auth, authorize("admin"), departmentController.createDepartment);
+  .post(auth, departmentController.createDepartment);
 
 router
   .route("/:id")
   .get(departmentController.getDepartment)
-  .patch(auth, authorize("admin"), departmentController.updateDepartment)
-  .delete(auth, authorize("admin"), departmentController.deleteDepartment);
+  .patch(auth, departmentController.updateDepartment)
+  .delete(auth, departmentController.deleteDepartment);
 
 module.exports = router;

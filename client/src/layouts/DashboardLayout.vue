@@ -10,6 +10,22 @@
       color="#a52a2a"
       dark
     >
+      <v-list-item class="px-2 py-4">
+        <v-list-item-avatar>
+          <v-avatar color="grey darken-1" size="48">
+            <span class="white--text text-h6">{{ userInitials }}</span>
+          </v-avatar>
+        </v-list-item-avatar>
+
+        <v-list-item-content v-if="!mini">
+          <v-list-item-title class="white--text text-subtitle-1">
+            {{ userFullName }}
+          </v-list-item-title>
+          <v-list-item-subtitle class="white--text text-caption">
+            {{ formattedRoles }}
+          </v-list-item-subtitle>
+        </v-list-item-content>
+      </v-list-item>
       <v-list dense class="drawer-list">
         <v-list-item>
           <v-list-item-icon>
@@ -127,10 +143,18 @@ export default {
   data: () => ({
     drawer: true,
     mini: false,
-    menuItems: [
-      { title: "Dashboard", icon: "mdi-view-dashboard", to: "/dashboard" },
-      { title: "Enrollment", icon: "mdi-view-dashboard", to: "/enrollment" },
-      {
+    allMenuItems: {
+      dashboard: {
+        title: "Dashboard",
+        icon: "mdi-view-dashboard",
+        to: "/dashboard",
+      },
+      enrollment: {
+        title: "Enrollment",
+        icon: "mdi-view-dashboard",
+        to: "/enrollment",
+      },
+      academics: {
         title: "Academics",
         icon: "mdi-school",
         children: [
@@ -151,11 +175,20 @@ export default {
           },
         ],
       },
-      { title: "Professor", icon: "mdi-account-tie", to: "/teachers" },
-      { title: "Students", icon: "mdi-account-group", to: "/students" },
-      { title: "Users", icon: "mdi-account-multiple", to: "/users" },
-      { title: "Reports", icon: "mdi-file-chart", to: "/reports" },
-    ],
+      professor: {
+        title: "Professor",
+        icon: "mdi-account-tie",
+        to: "/teachers",
+      },
+      students: {
+        title: "Students",
+        icon: "mdi-account-group",
+        to: "/students",
+      },
+      users: { title: "Users", icon: "mdi-account-multiple", to: "/users" },
+      roles: { title: "Roles", icon: "mdi-account-multiple", to: "/roles" },
+      reports: { title: "Reports", icon: "mdi-file-chart", to: "/reports" },
+    },
     accountMenu: [
       {
         title: "Profile",
@@ -170,8 +203,67 @@ export default {
     ],
   }),
 
+  computed: {
+    userData() {
+      return JSON.parse(localStorage.getItem("user"))?.user || null;
+    },
+
+    userRoles() {
+      return this.userData?.role?.map(r => r.name.toLowerCase()) || [];
+    },
+
+    userInitials() {
+      if (!this.userData) return "";
+
+      const firstName = this.userData.name.firstName.charAt(0) || "";
+      const surname = this.userData.name.surname.charAt(0) || "";
+      return (firstName + surname).toUpperCase();
+    },
+
+    userFullName() {
+      if (!this.userData) return "";
+
+      const firstName = this.capitalizeFirstLetter(
+        this.userData.name.firstName
+      );
+      const surname = this.capitalizeFirstLetter(this.userData.name.surname);
+      return `${firstName} ${surname}`;
+    },
+
+    formattedRoles() {
+      if (!this.userData?.role || !this.userData.role.length) return "";
+
+      return this.userData.role
+        .map((role) => this.capitalizeFirstLetter(role.name))
+        .join(" • ");
+    },
+
+    menuItems() {
+      const roleMenuMap = {
+        'program head': ['dashboard', 'enrollment', 'professor', 'students'],
+        'registrar': ['dashboard', 'enrollment', 'students'],
+        'admin': Object.keys(this.allMenuItems), 
+      };
+
+      const allowedMenus = new Set();
+      this.userRoles.forEach(role => {
+        const menus = roleMenuMap[role] || [];
+        menus.forEach(menu => allowedMenus.add(menu));
+      });
+
+      return Object.keys(this.allMenuItems)
+        .filter(key => allowedMenus.has(key))
+        .map(key => this.allMenuItems[key]);
+    },
+  },
+
   methods: {
     ...mapActions("auth", ["logout"]),
+
+    capitalizeFirstLetter(string) {
+      if (!string) return "";
+      return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    },
 
     isGroupActive(item) {
       if (!item.children) return false;
@@ -259,5 +351,17 @@ export default {
 .v-icon,
 .v-list-item__title {
   transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out !important;
+}
+
+.v-list-item__avatar {
+  min-width: 48px !important;
+}
+
+.v-list-item__subtitle {
+  white-space: normal !important;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

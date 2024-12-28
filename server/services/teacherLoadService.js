@@ -30,7 +30,7 @@ exports.getAllTeacherLoads = async (queryParams) => {
     },
     {
       $lookup: {
-        from: "professors",
+        from: "users",
         localField: "professor",
         foreignField: "_id",
         as: "professor",
@@ -172,7 +172,7 @@ exports.getStudentSchedule = async (req, res) => {
       },
       {
         $lookup: {
-          from: "professors",
+          from: "users",
           localField: "professor",
           foreignField: "_id",
           as: "professorInfo",

@@ -44,8 +44,10 @@ export default {
        commit('SET_LOADING', true)
        const response = await authService.login(credentials)
        const { token, user } = response.data.data
+
+       console.log(user)
        localStorage.setItem('token', token)
-       localStorage.setItem('user', JSON.stringify({_id: user._id}))
+       localStorage.setItem('user', JSON.stringify({user}))
        commit('SET_TOKEN', token)
        commit('SET_USER', user)
        router.push('/dashboard')

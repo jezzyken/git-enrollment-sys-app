@@ -11,6 +11,7 @@ exports.createProfessor = catchAsync(async (req, res) => {
 
 exports.getAllProfessors = catchAsync(async (req, res) => {
   const professors = await professorService.getAllProfessors(req.query);
+  console.log(professors)
   res.status(200).json({
     status: 'success',
     results: professors.length,

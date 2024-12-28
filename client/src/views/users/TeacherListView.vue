@@ -96,134 +96,126 @@
 
     <v-dialog v-model="dialog" max-width="800px">
       <v-card>
-        <v-card-title>
-          <span class="text-h5">{{
-            editMode ? "Edit Professor" : "Add New Professor"
-          }}</span>
+        <v-card-title
+          class="headline white--text d-flex align-center"
+          style="background-color: #a52a2a"
+        >
+          {{ editMode ? "Edit Professor" : "Create New Professor" }}
+          <v-spacer></v-spacer>
+          <v-btn icon dark @click="closeDialog">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <v-form ref="form" v-model="formValid" @submit.prevent>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.employeeId"
-                  :rules="rules.required"
-                  label="Teacher ID"
-                  required
-                  outlined
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.name.surname"
-                  :rules="rules.required"
-                  label="Surname"
-                  required
-                  outlined
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.name.firstName"
-                  :rules="rules.required"
-                  label="First Name"
-                  required
-                  outlined
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.name.middleName"
-                  label="Middle Name"
-                  outlined
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.name.nameExtension"
-                  label="Name Extension"
-                  outlined
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12" sm="6">
-                <v-select
-                  v-model="form.academicInfo.department"
-                  :items="departments"
-                  item-text="name"
-                  item-value="_id"
-                  label="Department"
-                  :rules="rules.required"
-                  outlined
-                ></v-select>
-              </v-col>
-
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="form.academicInfo.position"
-                  label="Position"
-                  outlined
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12" sm="6">
-                <v-select
-                  v-model="form.academicInfo.employmentStatus"
-                  :items="['full-time', 'part-time', 'adjunct', 'visiting']"
-                  label="Employment Status"
-                  :rules="rules.required"
-                  outlined
-                ></v-select>
-              </v-col>
-
-              <v-col cols="12" sm="6">
-                <v-menu
-                  v-model="dateHiredMenu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  offset-y
-                  min-width="auto"
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
+          <v-card-text class="pt-6">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.name.firstName"
+                    :rules="formRules.required"
+                    label="First Name"
+                    required
+                    outlined
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.name.surname"
+                    :rules="formRules.required"
+                    label="Last Name"
+                    required
+                    outlined
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.name.middleName"
+                    label="Middle Name"
+                    outlined
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.name.nameExtension"
+                    label="Name Extension"
+                    outlined
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="form.employeeId"
+                    :rules="formRules.required"
+                    label="Employee ID"
+                    required
+                    outlined
+                    dense
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="form.academicInfo.department"
+                    :items="departments"
+                    item-text="name"
+                    item-value="_id"
+                    :rules="formRules.required"
+                    label="Department"
+                    required
+                    outlined
+                    dense
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="form.academicInfo.employmentStatus"
+                    :items="['full-time', 'part-time', 'adjunct', 'visiting']"
+                    label="Employment Status"
+                    :rules="formRules.required"
+                    required
+                    outlined
+                    dense
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-menu
+                    v-model="dateHiredMenu"
+                    :close-on-content-click="false"
+                    transition="scale-transition"
+                    offset-y
+                    max-width="290px"
+                    min-width="290px"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="form.academicInfo.dateHired"
+                        label="Date Hired"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                        outlined
+                        dense
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
                       v-model="form.academicInfo.dateHired"
-                      label="Date Hired"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                      :rules="rules.required"
-                      outlined
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="form.academicInfo.dateHired"
-                    @input="dateHiredMenu = false"
-                  ></v-date-picker>
-                </v-menu>
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12" sm="6">
-                <v-select
-                  v-model="form.accountStatus"
-                  :items="['active', 'inactive', 'on-leave', 'terminated']"
-                  label="Account Status"
-                  outlined
-                ></v-select>
-              </v-col>
-            </v-row>
+                      @input="dateHiredMenu = false"
+                    ></v-date-picker>
+                  </v-menu>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="form.accountStatus"
+                    :items="['active', 'inactive', 'on-leave', 'terminated']"
+                    label="Account Status"
+                    outlined
+                    dense
+                  ></v-select>
+                </v-col>
+              </v-row>
           </v-card-text>
 
           <v-card-actions>
@@ -308,18 +300,18 @@ export default {
     form: {
       employeeId: "",
       name: {
-        surname: "",
         firstName: "",
+        surname: "",
         middleName: "",
         nameExtension: "",
       },
       academicInfo: {
         department: null,
-        position: "",
-        employmentStatus: "",
-        dateHired: "",
+        employmentStatus: "full-time",
+        dateHired: null,
       },
       accountStatus: "active",
+      role: [],
     },
     rules: {
       required: [(v) => !!v || "This field is required"],
@@ -330,11 +322,15 @@ export default {
     snackbar: false,
     snackbarColor: "",
     snackbarText: "",
+    formRules: {
+      required: [(v) => !!v || "This field is required"],
+    },
   }),
 
   computed: {
     ...mapState("professors", ["professors", "totalProfessors"]),
     ...mapState("departments", ["departments"]),
+    ...mapState("roles", ["roles"]),
   },
 
   methods: {
@@ -345,6 +341,7 @@ export default {
       "deleteProfessor",
     ]),
     ...mapActions("departments", ["fetchDepartments"]),
+    ...mapActions("roles", ["fetchRoles"]),
 
     formatEmploymentDate(date) {
       return date ? moment(date).format("YYYY-MM-DD") : "N/A";
@@ -394,6 +391,7 @@ export default {
           dateHired: moment(item.academicInfo.dateHired).format("YYYY-MM-DD"),
         },
         accountStatus: item.accountStatus,
+        role: item.role.map((r) => r._id),
       };
       this.dialog = true;
     },
@@ -404,10 +402,21 @@ export default {
     },
 
     async handleSubmit() {
+
+
       if (!this.$refs.form.validate()) return;
 
       this.loading = true;
       try {
+        const professorRole = this.roles.find(
+          (role) => role.name.toLowerCase() === "professor"
+        );
+        if (!professorRole) {
+          throw new Error("Professor role not found");
+        }
+
+        this.form.role = [professorRole._id];
+
         if (this.editMode) {
           await this.updateProfessor({
             id: this.form._id,
@@ -463,7 +472,11 @@ export default {
     async loadInitialData() {
       try {
         this.loading = true;
-        await Promise.all([this.fetchProfessors(), this.fetchDepartments()]);
+        await Promise.all([
+          this.fetchProfessors(),
+          this.fetchDepartments(),
+          this.fetchRoles(),
+        ]);
       } catch (error) {
         this.showSnackbarMessage("Failed to load data", "error");
       } finally {

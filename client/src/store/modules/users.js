@@ -14,7 +14,14 @@ export default {
     users: state => state.users,
     currentUser: state => state.currentUser,
     loading: state => state.loading,
-    error: state => state.error
+    error: state => state.error,
+    getUserById: state => id => state.users.find(user => user._id === id),
+    getAdminUsers: state => state.users.filter(user => 
+      user.role && user.role.some(role => role.name === 'admin')
+    ),
+    getUsersByDepartment: state => deptId => state.users.filter(user => 
+      user.academicInfo?.department?._id === deptId
+    )
   },
 
   mutations: {
@@ -31,10 +38,16 @@ export default {
       const index = state.users.findIndex(user => user._id === updatedUser._id)
       if (index !== -1) {
         state.users.splice(index, 1, updatedUser)
+        if (state.currentUser?._id === updatedUser._id) {
+          state.currentUser = updatedUser
+        }
       }
     },
     REMOVE_USER(state, userId) {
       state.users = state.users.filter(user => user._id !== userId)
+      if (state.currentUser?._id === userId) {
+        state.currentUser = null
+      }
     },
     SET_LOADING(state, loading) {
       state.loading = loading
@@ -52,11 +65,12 @@ export default {
       try {
         commit('SET_LOADING', true)
         commit('CLEAR_ERROR')
-        const response = await userService.getUsers()
-        console.log(response.data.data.users)
-        commit('SET_USERS', response.data.data.users)
+        const { data } = await userService.getUsers()
+        commit('SET_USERS', data)
+        return data
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch users')
+        const errorMessage = error.response?.data?.message || 'Failed to fetch users'
+        commit('SET_ERROR', errorMessage)
         throw error
       } finally {
         commit('SET_LOADING', false)
@@ -67,11 +81,12 @@ export default {
       try {
         commit('SET_LOADING', true)
         commit('CLEAR_ERROR')
-        const response = await userService.getUser(id)
-        commit('SET_CURRENT_USER', response.data.data.user)
-        return response.data.data.user
+        const { data } = await userService.getUser(id)
+        commit('SET_CURRENT_USER', data)
+        return data
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch user')
+        const errorMessage = error.response?.data?.message || 'Failed to fetch user'
+        commit('SET_ERROR', errorMessage)
         throw error
       } finally {
         commit('SET_LOADING', false)
@@ -82,11 +97,12 @@ export default {
       try {
         commit('SET_LOADING', true)
         commit('CLEAR_ERROR')
-        const response = await userService.createUser(userData)
-        commit('ADD_USER', response.data.data.user)
-        return response.data.data.user
+        const { data } = await userService.createUser(userData)
+        commit('ADD_USER', data)
+        return data
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to create user')
+        const errorMessage = error.response?.data?.message || 'Failed to create user'
+        commit('SET_ERROR', errorMessage)
         throw error
       } finally {
         commit('SET_LOADING', false)
@@ -97,11 +113,12 @@ export default {
       try {
         commit('SET_LOADING', true)
         commit('CLEAR_ERROR')
-        const response = await userService.updateUser(id, userData)
-        commit('UPDATE_USER', response.data.data.user)
-        return response.data.data.user
+        const { data } = await userService.updateUser(id, userData)
+        commit('UPDATE_USER', data)
+        return data
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to update user')
+        const errorMessage = error.response?.data?.message || 'Failed to update user'
+        commit('SET_ERROR', errorMessage)
         throw error
       } finally {
         commit('SET_LOADING', false)
@@ -115,69 +132,16 @@ export default {
         await userService.deleteUser(id)
         commit('REMOVE_USER', id)
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to delete user')
+        const errorMessage = error.response?.data?.message || 'Failed to delete user'
+        commit('SET_ERROR', errorMessage)
         throw error
       } finally {
         commit('SET_LOADING', false)
       }
     },
 
-    async getUser({ commit }, id) {
-      try {
-        commit('SET_LOADING', true)
-        commit('CLEAR_ERROR')
-        const response = await userService.getUser(id)
-        return response.data.data.user
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch user')
-        throw error
-      } finally {
-        commit('SET_LOADING', false)
-      }
-    },
-
-    async getUserByEmail({ commit }, email) {
-      try {
-        commit('SET_LOADING', true)
-        commit('CLEAR_ERROR')
-        const response = await userService.getUserByEmail(email)
-        return response.data.data.user
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch user')
-        throw error
-      } finally {
-        commit('SET_LOADING', false)
-      }
-    },
-
-    async getUsersByRole({ commit }, role) {
-      try {
-        commit('SET_LOADING', true)
-        commit('CLEAR_ERROR')
-        const response = await userService.getUsersByRole(role)
-        commit('SET_USERS', response.data.data.users)
-        return response.data.data.users
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch users')
-        throw error
-      } finally {
-        commit('SET_LOADING', false)
-      }
-    },
-
-    async toggleUserStatus({ commit }, id) {
-      try {
-        commit('SET_LOADING', true)
-        commit('CLEAR_ERROR')
-        const response = await userService.toggleUserStatus(id)
-        commit('UPDATE_USER', response.data.data.user)
-        return response.data.data.user
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to toggle user status')
-        throw error
-      } finally {
-        commit('SET_LOADING', false)
-      }
+    clearError({ commit }) {
+      commit('CLEAR_ERROR')
     }
   }
 }

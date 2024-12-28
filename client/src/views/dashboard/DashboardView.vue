@@ -107,14 +107,18 @@
               Recent Enrollments
             </v-card-title>
             <v-divider></v-divider>
+
             <v-list dense class="pa-0">
               <v-list-item
                 v-for="enrollment in recentEnrollments"
                 :key="enrollment._id"
                 class="px-4"
               >
-                <v-list-item-avatar color="primary" class="my-1">
-                  <span class="white--text">
+                <v-list-item-avatar
+                  color="primary"
+                  class="my-1 d-flex align-center justify-center"
+                >
+                  <span class="white--text text-center">
                     {{ enrollment.student.name.firstName.charAt(0) }}
                   </span>
                 </v-list-item-avatar>
@@ -192,7 +196,7 @@ export default {
           color: "primary",
         },
         {
-          title: "Active Professors",
+          title: "Active Users",
           value: this.stats.totalProfessors,
           icon: "mdi-teach",
           color: "success",
@@ -301,19 +305,19 @@ export default {
 }
 
 .stats-card-2 {
-  background: linear-gradient(135deg, #2E7D32 0%, #81C784 100%);
+  background: linear-gradient(135deg, #2e7d32 0%, #81c784 100%);
 }
 
 .stats-card-3 {
-  background: linear-gradient(135deg, #F57C00 0%, #FFB74D 100%);
+  background: linear-gradient(135deg, #f57c00 0%, #ffb74d 100%);
 }
 
 .stats-card-4 {
-  background: linear-gradient(135deg, #0288D1 0%, #4FC3F7 100%);
+  background: linear-gradient(135deg, #0288d1 0%, #4fc3f7 100%);
 }
 
 .stats-card::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -333,11 +337,11 @@ export default {
   .stats-value {
     font-size: 2rem !important;
   }
-  
+
   .stats-icon {
     font-size: 36px !important;
   }
-  
+
   .stats-title {
     font-size: 1rem;
   }

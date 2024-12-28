@@ -7,38 +7,47 @@
     <v-form ref="form" lazy-validation>
       <v-stepper v-model="currentStep" class="mb-6 elevation-1">
         <v-stepper-header>
-          <v-stepper-step :complete="currentStep > 1" step="1">
-            Student Type
-            <small>New or Existing Student</small>
-          </v-stepper-step>
-          <v-divider></v-divider>
+          <template v-if="!isRegistrar">
+            <v-stepper-step :complete="currentStep > 1" step="1">
+              Student Type
+              <small>New or Existing Student</small>
+            </v-stepper-step>
+            <v-divider></v-divider>
+          </template>
 
-          <v-stepper-step :complete="currentStep > 2" step="2">
+          <v-stepper-step
+            :complete="currentStep > 2"
+            :step="isRegistrar ? 1 : 2"
+          >
             Student Details
             <small>Basic Information</small>
           </v-stepper-step>
           <v-divider></v-divider>
 
-          <v-stepper-step :complete="currentStep > 3" step="3">
+          <v-stepper-step
+            :complete="currentStep > 3"
+            :step="isRegistrar ? 2 : 3"
+          >
             Enrollment Details
             <small>Academic Information</small>
           </v-stepper-step>
           <v-divider></v-divider>
 
-          <v-stepper-step step="4">
+          <v-stepper-step :step="isRegistrar ? 3 : 4">
             Review
             <small>Verify Details</small>
           </v-stepper-step>
         </v-stepper-header>
 
         <v-stepper-items>
-          <v-stepper-content step="1">
+          <v-stepper-content step="1" v-if="!isRegistrar">
             <v-card class="mb-6">
               <v-card-title class="headline primary white--text pa-2">
-                Select Student Type
+                {{ isProgramHead ? "Select Student" : "Select Student Type" }}
               </v-card-title>
               <v-card-text class="pa-6">
                 <v-radio-group
+                  v-if="!isProgramHead"
                   v-model="enrollmentForm.enrollmentType"
                   mandatory
                 >
@@ -46,25 +55,12 @@
                   <v-radio label="Existing Student" value="old"></v-radio>
                 </v-radio-group>
 
-                <!-- <v-expand-transition>
-                  <div v-if="enrollmentForm.enrollmentType === 'old'">
-                    <v-autocomplete
-                      v-model="selectedStudent"
-                      :items="students"
-                      item-text="fullName"
-                      item-value="_id"
-                      label="Select Student"
-                      outlined
-                      dense
-                      prepend-inner-icon="mdi-account"
-                      required
-                      @change="handleStudentSelect"
-                    ></v-autocomplete>
-                  </div>
-                </v-expand-transition> -->
-
                 <v-expand-transition>
-                  <div v-if="enrollmentForm.enrollmentType === 'old'">
+                  <div
+                    v-if="
+                      isProgramHead || enrollmentForm.enrollmentType === 'old'
+                    "
+                  >
                     <v-card>
                       <div class="d-flex justify-end pa-4">
                         <v-text-field
@@ -1007,6 +1003,28 @@ export default {
         0
       );
     },
+
+    userRoles() {
+      const user = JSON.parse(localStorage.getItem("user"))?.user;
+      return user?.role?.map((r) => r.name.toLowerCase()) || [];
+    },
+
+    isAdmin() {
+      return this.userRoles.includes("admin");
+    },
+
+    isProgramHead() {
+      return this.userRoles.includes("program head");
+    },
+
+    isRegistrar() {
+      return this.userRoles.includes("registrar");
+    },
+
+    initialStep() {
+      if (this.isRegistrar) return 2;
+      return 1;
+    },
   },
 
   methods: {
@@ -1069,11 +1087,15 @@ export default {
 
     nextStep() {
       if (this.validateCurrentStep()) {
-        if (
-          this.currentStep === 1 &&
-          this.enrollmentForm.enrollmentType === "old"
-        ) {
-          this.currentStep = 3;
+        if (this.currentStep === 1) {
+          if (
+            this.isProgramHead ||
+            this.enrollmentForm.enrollmentType === "old"
+          ) {
+            this.currentStep = 3;
+          } else {
+            this.currentStep++;
+          }
         } else {
           this.currentStep++;
         }
@@ -1095,15 +1117,20 @@ export default {
     },
 
     previousStep() {
+      if (this.isRegistrar && this.currentStep <= 2) {
+        return;
+      }
+
       if (
         this.currentStep === 3 &&
-        this.enrollmentForm.enrollmentType === "old"
+        (this.isProgramHead || this.enrollmentForm.enrollmentType === "old")
       ) {
         this.currentStep = 1;
       } else {
         this.currentStep--;
       }
     },
+
     validateCurrentStep() {
       if (
         this.currentStep === 1 &&
@@ -1304,6 +1331,14 @@ export default {
         this.fetchCourses(),
         this.fetchSubjects(),
       ]);
+
+      if (this.isProgramHead) {
+        this.enrollmentForm.enrollmentType = "old";
+      } else if (this.isRegistrar) {
+        this.enrollmentForm.enrollmentType = "new";
+      }
+
+      this.currentStep = this.initialStep;
     } catch (error) {
       console.error("Error fetching initial data:", error);
     } finally {

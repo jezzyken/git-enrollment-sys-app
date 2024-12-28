@@ -3,7 +3,7 @@ const router = express.Router();
 const TeacherLoad = require("../../models/TeacherLoad");
 const Enrollment = require("../../models/Enrollment");
 const StudentProfile = require("../../models/StudentProfile");
-const Professor = require("../../models/Professor");
+const Professor = require("../../models/User");
 const Subject = require("../../models/Subject");
 
 // Get enrollment statistics for current academic year and semester
@@ -50,7 +50,7 @@ router.get("/teacher-loads", async (req, res) => {
       },
       {
         $lookup: {
-          from: "professors",
+          from: "users",
           localField: "professor",
           foreignField: "_id",
           as: "professorInfo",
