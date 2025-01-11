@@ -311,7 +311,6 @@ export default {
   data: () => ({
     selectedAcademicYear: "",
     selectedSemester: "",
-    academicYears: ["2023-2024", "2024-2025"],
     semesters: ["First", "Second"],
     downloading: {
       enrollment: false,
@@ -360,6 +359,18 @@ export default {
 
     getTotalSubjects() {
       return this.subjectStats.length;
+    },
+
+    academicYears() {
+      const startYear = 2023;
+      const endYear = 2030;
+      const years = [];
+
+      for (let year = startYear; year < endYear; year++) {
+        years.push(`${year}-${year + 1}`);
+      }
+
+      return years;
     },
   },
 

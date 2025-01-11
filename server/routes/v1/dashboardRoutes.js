@@ -11,6 +11,8 @@ router.get('/stats', async (req, res) => {
         const currentAcademicYear = req.query.academicYear;
         const currentSemester = req.query.semester;
 
+        console.log(currentAcademicYear, currentSemester)
+
         const stats = {
             totalEnrollments: await Enrollment.countDocuments({
                 academicYear: currentAcademicYear,
@@ -20,12 +22,12 @@ router.get('/stats', async (req, res) => {
             totalSubjects: await Subject.countDocuments(),
             totalCourses: await Course.countDocuments(),
             enrollmentStatus: await Enrollment.aggregate([
-                {
-                    $match: {
-                        academicYear: currentAcademicYear,
-                        semester: currentSemester
-                    }
-                },
+                // {
+                //     $match: {
+                //         academicYear: currentAcademicYear,
+                //         semester: currentSemester
+                //     }
+                // },
                 {
                     $group: {
                         _id: '$enrollmentStatus',
@@ -43,12 +45,12 @@ router.get('/stats', async (req, res) => {
 
 router.get('/enrollments/by-course', async (req, res) => {
     try {
-        const { academicYear } = req.query;
+        // const { academicYear } = req.query;
 
         const enrollmentsByCourse = await Enrollment.aggregate([
-            {
-                $match: { academicYear }
-            },
+            // {
+            //     $match: { academicYear }
+            // },
             {
                 $lookup: {
                     from: 'courses',

@@ -600,11 +600,15 @@ export default {
     },
 
     academicYears() {
-      const currentYear = new Date().getFullYear();
-      return [
-        `${currentYear - 1}-${currentYear}`,
-        `${currentYear}-${currentYear + 1}`,
-      ];
+      const startYear = 2023;
+      const endYear = 2030;
+      const years = [];
+
+      for (let year = startYear; year < endYear; year++) {
+        years.push(`${year}-${year + 1}`);
+      }
+
+      return years;
     },
 
     currentTeachingLoad() {
@@ -792,7 +796,6 @@ export default {
     },
 
     async updateAllGrades() {
-
       if (!this.selectedTeacherLoadId) {
         this.showSnackbarMessage("Teacher load ID not found", "error");
         return;

@@ -930,8 +930,6 @@ export default {
     loading: false,
     confirmEnrollment: false,
     selectedStudent: null,
-    academicYears: ["2023-2024", "2024-2025", "2025-2026"],
-
     studentForm: {
       name: {
         surname: "",
@@ -1024,6 +1022,18 @@ export default {
     initialStep() {
       if (this.isRegistrar) return 2;
       return 1;
+    },
+
+    academicYears() {
+      const startYear = 2023;
+      const endYear = 2030;
+      const years = [];
+
+      for (let year = startYear; year < endYear; year++) {
+        years.push(`${year}-${year + 1}`);
+      }
+
+      return years;
     },
   },
 

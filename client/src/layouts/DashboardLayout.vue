@@ -12,8 +12,8 @@
     >
       <v-list-item class="px-2 py-4">
         <v-list-item-avatar>
-          <v-avatar color="grey darken-1" size="48">
-            <span class="white--text text-h6">{{ userInitials }}</span>
+          <v-avatar color="white darken-1" size="48">
+            <span class="initial text-body-1">{{ userInitials }}</span>
           </v-avatar>
         </v-list-item-avatar>
 
@@ -363,5 +363,9 @@ export default {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.initial{
+  color: #a52a2a
 }
 </style>
