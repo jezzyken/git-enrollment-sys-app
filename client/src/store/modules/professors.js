@@ -29,7 +29,9 @@ export default {
       state.professors.push(professor);
     },
     UPDATE_PROFESSOR(state, updatedProfessor) {
-      const index = state.professors.findIndex(p => p._id === updatedProfessor._id);
+      const index = state.professors.findIndex(
+        (p) => p._id === updatedProfessor._id
+      );
       if (index !== -1) {
         state.professors.splice(index, 1, updatedProfessor);
       }
@@ -38,7 +40,7 @@ export default {
       }
     },
     REMOVE_PROFESSOR(state, professorId) {
-      state.professors = state.professors.filter(p => p._id !== professorId);
+      state.professors = state.professors.filter((p) => p._id !== professorId);
       if (state.currentProfessor?._id === professorId) {
         state.currentProfessor = null;
       }
@@ -70,7 +72,7 @@ export default {
       commit("SET_LOADING", true);
       try {
         const response = await professorService.getProfessor(id);
-        console.log(response)
+        console.log(response);
         commit("SET_CURRENT_PROFESSOR", response.data.data.professor);
         return response.data.data.professor;
       } catch (error) {
@@ -112,7 +114,10 @@ export default {
     async updateProfessor({ commit }, { id, professorData }) {
       commit("SET_LOADING", true);
       try {
-        const response = await professorService.updateProfessor(id, professorData);
+        const response = await professorService.updateProfessor(
+          id,
+          professorData
+        );
         commit("UPDATE_PROFESSOR", response.data.data.professor);
         return response.data.data.professor;
       } catch (error) {
@@ -139,16 +144,32 @@ export default {
 
   getters: {
     getProfessorById: (state) => (id) => {
-      return state.professors.find(p => p._id === id);
+      return state.professors.find((p) => p._id === id);
     },
     getProfessorsByDepartment: (state) => (departmentId) => {
-      return state.professors.filter(p => p.academicInfo.department === departmentId);
+      return state.professors.filter(
+        (p) => p.academicInfo.department === departmentId
+      );
     },
     getActiveFullTimeProfessors: (state) => {
-      return state.professors.filter(p => 
-        p.accountStatus === 'active' && 
-        p.academicInfo.employmentStatus === 'full-time'
+      return state.professors.filter(
+        (p) =>
+          p.accountStatus === "active" &&
+          p.academicInfo.employmentStatus === "full-time"
       );
-    }
-  }
+    },
+    filteredProfessor: (state) => {
+      const userData = localStorage.getItem("user");
+      if (!userData) return [];
+
+      const user = JSON.parse(userData).user;
+      const isAdmin = user.role.some((role) => role.name === "admin");
+
+      if (isAdmin) {
+        return state.professors;
+      } else {
+        return state.professors.filter((prof) => prof.academicInfo.department._id === user.academicInfo.department);
+      }
+    },
+  },
 };

@@ -6,7 +6,7 @@ exports.createCourse = async (data) => {
 };
 
 exports.getAllCourse = async (query) => {
-  return await Course.find(query);
+  return await Course.find(query).populate('departments');
 };
 
 exports.getCourse = async (id) => {
@@ -15,6 +15,17 @@ exports.getCourse = async (id) => {
     throw new AppError('No course found with that ID', 404);
   }
   return course;
+};
+
+exports.getCoursesByDepartment = async (departmentId) => {
+  const courses = await Course.find({
+    departments: { $in: [departmentId] }
+  }).populate('departments');
+  
+  if (!courses) {
+    throw new AppError('No courses found for this department', 404);
+  }
+  return courses;
 };
 
 exports.updateCourse = async (id, data) => {

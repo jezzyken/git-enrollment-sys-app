@@ -80,7 +80,7 @@
 
                       <v-data-table
                         :headers="studentHeaders"
-                        :items="students"
+                        :items="filteredStudent"
                         :search="search"
                         :loading="loading"
                         single-select
@@ -903,9 +903,8 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 import moment from "moment";
-import students from "@/store/modules/students";
 
 export default {
   name: "EnrollmentStepper",
@@ -982,6 +981,8 @@ export default {
   computed: {
     ...mapState("students", ["students"]),
     ...mapState("courses", ["courses"]),
+    ...mapGetters("students", ["filteredStudent"]),
+
     formattedDateOfBirth() {
       if (!this.studentForm.dateOfBirth) return "";
       return new Date(this.studentForm.dateOfBirth).toLocaleDateString();

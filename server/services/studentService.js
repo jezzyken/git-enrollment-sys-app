@@ -1,3 +1,4 @@
+const { populate } = require("../models/Roles");
 const StudentProfile = require("../models/StudentProfile");
 const AppError = require("../utils/appError");
 const { Readable } = require("stream");
@@ -65,7 +66,12 @@ exports.createStudent = async (studentData, imageBuffer) => {
 
 exports.getAllStudents = async (query) => {
   return await StudentProfile.find(query)
-    .populate("course")
+    .populate({
+      path: "course",
+      populate: {
+        path: "departments",
+      },
+    })
     .populate({
       path: "enrollments",
       select: "enrollmentStatus academicYear semester",

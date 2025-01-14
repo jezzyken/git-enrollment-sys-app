@@ -30,7 +30,7 @@
     <v-card>
       <v-data-table
         :headers="headers"
-        :items="professors"
+        :items="filteredProfessor"
         :loading="loading"
         :options.sync="options"
         :server-items-length="totalProfessors"
@@ -109,113 +109,113 @@
 
         <v-form ref="form" v-model="formValid" @submit.prevent>
           <v-card-text class="pt-6">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.name.firstName"
-                    :rules="formRules.required"
-                    label="First Name"
-                    required
-                    outlined
-                    dense
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.name.surname"
-                    :rules="formRules.required"
-                    label="Last Name"
-                    required
-                    outlined
-                    dense
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.name.middleName"
-                    label="Middle Name"
-                    outlined
-                    dense
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.name.nameExtension"
-                    label="Name Extension"
-                    outlined
-                    dense
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-text-field
-                    v-model="form.employeeId"
-                    :rules="formRules.required"
-                    label="Employee ID"
-                    required
-                    outlined
-                    dense
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="form.academicInfo.department"
-                    :items="departments"
-                    item-text="name"
-                    item-value="_id"
-                    :rules="formRules.required"
-                    label="Department"
-                    required
-                    outlined
-                    dense
-                  ></v-select>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="form.academicInfo.employmentStatus"
-                    :items="['full-time', 'part-time', 'adjunct', 'visiting']"
-                    label="Employment Status"
-                    :rules="formRules.required"
-                    required
-                    outlined
-                    dense
-                  ></v-select>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-menu
-                    v-model="dateHiredMenu"
-                    :close-on-content-click="false"
-                    transition="scale-transition"
-                    offset-y
-                    max-width="290px"
-                    min-width="290px"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        v-model="form.academicInfo.dateHired"
-                        label="Date Hired"
-                        readonly
-                        v-bind="attrs"
-                        v-on="on"
-                        outlined
-                        dense
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.name.firstName"
+                  :rules="formRules.required"
+                  label="First Name"
+                  required
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.name.surname"
+                  :rules="formRules.required"
+                  label="Last Name"
+                  required
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.name.middleName"
+                  label="Middle Name"
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.name.nameExtension"
+                  label="Name Extension"
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.employeeId"
+                  :rules="formRules.required"
+                  label="Employee ID"
+                  required
+                  outlined
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="form.academicInfo.department"
+                  :items="departments"
+                  item-text="name"
+                  item-value="_id"
+                  :rules="formRules.required"
+                  label="Department"
+                  required
+                  outlined
+                  dense
+                ></v-select>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="form.academicInfo.employmentStatus"
+                  :items="['full-time', 'part-time', 'adjunct', 'visiting']"
+                  label="Employment Status"
+                  :rules="formRules.required"
+                  required
+                  outlined
+                  dense
+                ></v-select>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-menu
+                  v-model="dateHiredMenu"
+                  :close-on-content-click="false"
+                  transition="scale-transition"
+                  offset-y
+                  max-width="290px"
+                  min-width="290px"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
                       v-model="form.academicInfo.dateHired"
-                      @input="dateHiredMenu = false"
-                    ></v-date-picker>
-                  </v-menu>
-                </v-col>
-                <v-col cols="12" md="6">
-                  <v-select
-                    v-model="form.accountStatus"
-                    :items="['active', 'inactive', 'on-leave', 'terminated']"
-                    label="Account Status"
-                    outlined
-                    dense
-                  ></v-select>
-                </v-col>
-              </v-row>
+                      label="Date Hired"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                      outlined
+                      dense
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker
+                    v-model="form.academicInfo.dateHired"
+                    @input="dateHiredMenu = false"
+                  ></v-date-picker>
+                </v-menu>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-select
+                  v-model="form.accountStatus"
+                  :items="['active', 'inactive', 'on-leave', 'terminated']"
+                  label="Account Status"
+                  outlined
+                  dense
+                ></v-select>
+              </v-col>
+            </v-row>
           </v-card-text>
 
           <v-card-actions>
@@ -271,7 +271,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 import moment from "moment";
 
 export default {
@@ -331,6 +331,7 @@ export default {
     ...mapState("professors", ["professors", "totalProfessors"]),
     ...mapState("departments", ["departments"]),
     ...mapState("roles", ["roles"]),
+    ...mapGetters("professors", ["filteredProfessor"]),
   },
 
   methods: {
@@ -402,8 +403,6 @@ export default {
     },
 
     async handleSubmit() {
-
-
       if (!this.$refs.form.validate()) return;
 
       this.loading = true;
@@ -494,6 +493,8 @@ export default {
 
   created() {
     this.loadInitialData();
+
+    console.log(localStorage.getItem("user"));
   },
 };
 </script>

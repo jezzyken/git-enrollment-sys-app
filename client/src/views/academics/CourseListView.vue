@@ -15,7 +15,7 @@
               dense
               class="search-field"
               style="max-width: 400px"
-              @keyup.enter="fetchCourses"
+              @keyup.enter="loadCourses"
             ></v-text-field>
 
             <v-btn color="primary" @click="openCreateDialog">
@@ -33,7 +33,20 @@
         :items="courses"
         :loading="loading"
         :items-per-page="10"
+        :search="options.search"
       >
+        <!-- Departments column template -->
+        <template v-slot:item.departments="{ item }">
+          <v-chip
+            v-for="dept in item.departments"
+            :key="dept._id"
+            small
+            class="mr-1 mb-1"
+          >
+            {{ dept.name }}
+          </v-chip>
+        </template>
+
         <template v-slot:item.actions="{ item }">
           <div class="d-flex justify-end">
             <v-btn
@@ -87,10 +100,24 @@
               <v-col cols="12">
                 <v-text-field
                   v-model="editedItem.courseCode"
-                  label="Course Abbreviation"
+                  label="Course Code"
                   :error-messages="codeError"
                   required
                 ></v-text-field>
+              </v-col>
+              <v-col cols="12" v-if="isAdmin">
+                <v-select
+                  v-model="editedItem.departments"
+                  :items="filteredDepartments"
+                  item-text="name"
+                  item-value="_id"
+                  label="Departments"
+                  :error-messages="departmentError"
+                  multiple
+                  chips
+                  deletable-chips
+                  required
+                ></v-select>
               </v-col>
             </v-row>
           </v-container>
@@ -99,11 +126,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text @click="closeDialog">Cancel</v-btn>
-          <v-btn
-            color="primary"
-            :loading="loading"
-            @click="saveCourse"
-          >
+          <v-btn color="primary" :loading="loading" @click="saveCourse">
             Save
           </v-btn>
         </v-card-actions>
@@ -127,30 +150,33 @@
             <div class="caption text-medium-emphasis">
               Code: {{ courseToDelete?.courseCode }}
             </div>
+            <div class="caption text-medium-emphasis">
+              Departments:
+              <div class="mt-1">
+                <v-chip
+                  v-for="dept in courseToDelete?.departments"
+                  :key="dept._id"
+                  x-small
+                  class="mr-1 mb-1"
+                >
+                  {{ dept.name }}
+                </v-chip>
+              </div>
+            </div>
           </div>
         </v-card-text>
 
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn
-            color="error"
-            @click="handleDelete"
-            :loading="loading"
-          >
+          <v-btn color="error" @click="handleDelete" :loading="loading">
             Delete
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-snackbar
-      v-model="snackbar"
-      :color="snackbarColor"
-      :timeout="4000"
-      top
-      right
-    >
+    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="4000" top right>
       {{ snackbarText }}
       <template v-slot:action="{ attrs }">
         <v-btn icon v-bind="attrs" @click="snackbar = false">
@@ -162,7 +188,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'CourseListView',
@@ -170,6 +196,7 @@ export default {
   data: () => ({
     dialog: false,
     deleteDialog: false,
+    currentUser: null,
     options: {
       search: '',
     },
@@ -180,9 +207,14 @@ export default {
         sortable: true,
       },
       {
-        text: 'Course Abbreviation',
+        text: 'Course Code',
         value: 'courseCode',
         sortable: true,
+      },
+      {
+        text: 'Departments',
+        value: 'departments',
+        sortable: false,
       },
       {
         text: 'Actions',
@@ -194,14 +226,17 @@ export default {
     editedItem: {
       courseName: '',
       courseCode: '',
+      departments: [],
     },
     defaultItem: {
       courseName: '',
       courseCode: '',
+      departments: [],
     },
     courseToDelete: null,
     nameError: '',
     codeError: '',
+    departmentError: '',
     snackbar: false,
     snackbarColor: '',
     snackbarText: '',
@@ -209,26 +244,76 @@ export default {
 
   computed: {
     ...mapState('courses', ['courses', 'loading']),
+    ...mapState('departments', ['departments']),
+    ...mapGetters('departments', ['filteredDepartments']),
+    
+    isAdmin() {
+      if (!this.currentUser) return false;
+      return this.currentUser.role.some(role => role.name === 'admin');
+    },
+    
     formTitle() {
       return !this.editedItem._id ? 'New Course' : 'Edit Course';
-    },
+    }
   },
 
   methods: {
     ...mapActions('courses', [
       'fetchCourses',
+      'fetchCoursesByDepartment',
       'createCourse',
       'updateCourse',
       'deleteCourse',
     ]),
+    ...mapActions('departments', ['fetchDepartments']),
+
+    getCurrentUser() {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const parsedData = JSON.parse(userData);
+          this.currentUser = parsedData.user;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          this.currentUser = null;
+          this.showSnackbarMessage('Error loading user data', 'error');
+        }
+      }
+    },
+
+    async loadCourses() {
+      try {
+        if (this.isAdmin) {
+          await this.fetchCourses();
+        } else if (this.currentUser?.department) {
+          await this.fetchCoursesByDepartment(this.currentUser.department);
+        }
+      } catch (error) {
+        this.showSnackbarMessage('Failed to load courses', 'error');
+      }
+    },
+
+    async loadDepartments() {
+      try {
+        await this.fetchDepartments();
+      } catch (error) {
+        this.showSnackbarMessage('Failed to load departments', 'error');
+      }
+    },
 
     openCreateDialog() {
       this.editedItem = { ...this.defaultItem };
+      if (!this.isAdmin && this.currentUser?.department) {
+        this.editedItem.departments = [this.currentUser.department];
+      }
       this.dialog = true;
     },
 
     openEditDialog(item) {
       this.editedItem = { ...item };
+      if (item.departments) {
+        this.editedItem.departments = item.departments.map(dept => dept._id);
+      }
       this.dialog = true;
     },
 
@@ -236,50 +321,63 @@ export default {
       this.dialog = false;
       this.nameError = '';
       this.codeError = '';
+      this.departmentError = '';
       this.$nextTick(() => {
         this.editedItem = { ...this.defaultItem };
       });
-    },
-
-    async saveCourse() {
-      if (!this.validateForm()) return;
-
-      try {
-        if (this.editedItem._id) {
-          await this.updateCourse({
-            id: this.editedItem._id,
-            courseData: this.editedItem,
-          });
-          this.showSnackbarMessage('Course updated successfully!', 'success');
-        } else {
-          await this.createCourse(this.editedItem);
-          this.showSnackbarMessage('Course created successfully!', 'success');
-        }
-        this.closeDialog();
-        this.fetchCourses();
-      } catch (error) {
-        this.showSnackbarMessage(
-          error.response?.data?.message || 'Operation failed!',
-          'error'
-        );
-      }
     },
 
     validateForm() {
       let isValid = true;
       this.nameError = '';
       this.codeError = '';
+      this.departmentError = '';
 
-      if (!this.editedItem.courseName) {
+      if (!this.editedItem.courseName?.trim()) {
         this.nameError = 'Course name is required';
         isValid = false;
       }
-      if (!this.editedItem.courseCode) {
-        this.codeError = 'Course abbreviation is required';
+      if (!this.editedItem.courseCode?.trim()) {
+        this.codeError = 'Course code is required';
+        isValid = false;
+      }
+      if (!this.editedItem.departments?.length) {
+        this.departmentError = 'At least one department is required';
         isValid = false;
       }
 
       return isValid;
+    },
+
+    async saveCourse() {
+      if (!this.validateForm()) return;
+
+      try {
+        const courseData = {
+          ...this.editedItem,
+          departments: this.isAdmin ? 
+            this.editedItem.departments : 
+            [this.currentUser.department]
+        };
+
+        if (this.editedItem._id) {
+          await this.updateCourse({
+            id: this.editedItem._id,
+            courseData,
+          });
+          this.showSnackbarMessage('Course updated successfully!', 'success');
+        } else {
+          await this.createCourse(courseData);
+          this.showSnackbarMessage('Course created successfully!', 'success');
+        }
+        this.closeDialog();
+        this.loadCourses();
+      } catch (error) {
+        this.showSnackbarMessage(
+          error.response?.data?.message || 'Operation failed!',
+          'error'
+        );
+      }
     },
 
     confirmDelete(item) {
@@ -291,7 +389,7 @@ export default {
       try {
         await this.deleteCourse(this.courseToDelete._id);
         this.showSnackbarMessage('Course deleted successfully!', 'success');
-        this.fetchCourses();
+        this.loadCourses();
       } catch (error) {
         this.showSnackbarMessage(
           error.response?.data?.message || 'Failed to delete course!',
@@ -299,6 +397,7 @@ export default {
         );
       } finally {
         this.deleteDialog = false;
+        this.courseToDelete = null;
       }
     },
 
@@ -309,8 +408,16 @@ export default {
     },
   },
 
-  created() {
-    this.fetchCourses();
+  async created() {
+    try {
+      this.getCurrentUser();
+      await Promise.all([
+        this.loadDepartments(),
+        this.loadCourses()
+      ]);
+    } catch (error) {
+      this.showSnackbarMessage('Failed to initialize page', 'error');
+    }
   },
 };
 </script>
@@ -318,6 +425,24 @@ export default {
 <style scoped>
 .v-data-table {
   border-radius: 8px;
+}
+
+.v-select {
+  width: 100%;
+}
+
+.v-chip {
+  margin: 2px;
+}
+
+.v-chip.small {
+  height: 24px;
+  font-size: 12px;
+}
+
+.v-chip.x-small {
+  height: 20px;
+  font-size: 11px;
 }
 
 @media (max-width: 600px) {

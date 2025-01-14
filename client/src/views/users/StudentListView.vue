@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card class="mb-4">
+    <v-card class="mb-4"> 
       <v-row align="center" no-gutters>
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
@@ -9,7 +9,7 @@
               prepend-inner-icon="mdi-magnify"
               placeholder="Search students..."
               hide-details
-              single-line
+              single-line 
               filled
               rounded
               dense
@@ -125,7 +125,7 @@
     <v-card>
       <v-data-table
         :headers="headers"
-        :items="students"
+        :items="filteredStudent"
         :loading="loading"
         :options.sync="options"
         :server-items-length="totalStudents"
@@ -268,7 +268,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters  } from "vuex";
 
 export default {
   name: "StudentListView",
@@ -323,6 +323,7 @@ export default {
 
   computed: {
     ...mapState("students", ["students", "totalStudents"]),
+    ...mapGetters("students", ["filteredStudent"]),
   },
 
   methods: {

@@ -15,11 +15,28 @@ export default {
     currentStudent: (state) => state.currentStudent,
     loading: (state) => state.loading,
     error: (state) => state.error,
+    filteredStudent: (state) => {
+      const userData = localStorage.getItem("user");
+      if (!userData) return [];
+
+      const user = JSON.parse(userData).user;
+      const isAdmin = user.role.some((role) => role.name === "admin");
+
+      if (isAdmin) {
+        return state.students;
+      } else {
+        return state.students.filter((student) =>
+          student.course.departments.some(
+            (dept) => dept._id === user.academicInfo.department
+          )
+        );
+      }
+    },
   },
 
   mutations: {
     SET_STUDENTS(state, students) {
-      console.log(students)
+      console.log(students);
       state.students = students;
     },
     SET_CURRENT_STUDENT(state, student) {
@@ -29,7 +46,9 @@ export default {
       state.students.push(student);
     },
     UPDATE_STUDENT(state, updatedStudent) {
-      const index = state.students.findIndex((s) => s._id === updatedStudent._id);
+      const index = state.students.findIndex(
+        (s) => s._id === updatedStudent._id
+      );
       if (index !== -1) {
         state.students.splice(index, 1, updatedStudent);
       }
@@ -54,7 +73,7 @@ export default {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
         const response = await studentService.getAllStudents();
-        console.log(response)
+        console.log(response);
         commit("SET_STUDENTS", response.data.data.students);
       } catch (error) {
         commit(
@@ -72,7 +91,7 @@ export default {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
         const response = await studentService.getStudent(id);
-        console.log(response)
+        console.log(response);
         commit("SET_CURRENT_STUDENT", response.data.data.student);
       } catch (error) {
         commit(

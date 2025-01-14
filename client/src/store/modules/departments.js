@@ -15,6 +15,20 @@ export default {
     currentDepartment: (state) => state.currentDepartment,
     loading: (state) => state.loading,
     error: (state) => state.error,
+
+    filteredDepartments: (state) => {
+      const userData = localStorage.getItem("user");
+      if (!userData) return [];
+
+      const user = JSON.parse(userData).user;
+      const isAdmin = user.role.some((role) => role.name === "admin");
+
+      if (isAdmin) {
+        return state.departments;
+      } else {
+        return state.departments.filter((dept) => dept._id === user.department);
+      }
+    },
   },
 
   mutations: {
@@ -56,8 +70,10 @@ export default {
       try {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
+
         const response = await departmentService.getDepartments();
-        console.log(response)
+        console.log(response);
+
         commit("SET_DEPARTMENTS", response.data.data.departments);
       } catch (error) {
         commit(
@@ -88,8 +104,6 @@ export default {
     },
 
     async createDepartment({ commit }, departmentData) {
-
-      console.log(departmentData)
       try {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");

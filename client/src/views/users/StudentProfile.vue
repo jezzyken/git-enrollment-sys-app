@@ -4,7 +4,6 @@
       <v-col cols="12">
         <v-card class="rounded-lg" elevation="2">
           <v-skeleton-loader v-if="loading" type="card-heading, list-item-three-line"></v-skeleton-loader>
-
           <template v-else>
             <v-row no-gutters>
               <v-col cols="12" sm="2" class="pa-4 d-flex justify-center align-center">

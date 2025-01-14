@@ -6,6 +6,7 @@ export default {
   state: {
     courses: [],
     currentCourse: null,
+    departmentCourses: [],
     loading: false,
     error: null,
   },
@@ -13,6 +14,7 @@ export default {
   getters: {
     courses: (state) => state.courses,
     currentCourse: (state) => state.currentCourse,
+    departmentCourses: (state) => state.departmentCourses,
     loading: (state) => state.loading,
     error: (state) => state.error,
   },
@@ -23,6 +25,9 @@ export default {
     },
     SET_CURRENT_COURSE(state, course) {
       state.currentCourse = course;
+    },
+    SET_DEPARTMENT_COURSES(state, courses) {
+      state.departmentCourses = courses;
     },
     ADD_COURSE(state, course) {
       state.courses.push(course);
@@ -53,7 +58,7 @@ export default {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
         const response = await courseService.getCourses();
-        console.log(response)
+        console.log(response);
         commit("SET_COURSES", response.data.data.courses);
       } catch (error) {
         commit(
@@ -93,6 +98,27 @@ export default {
         commit(
           "SET_ERROR",
           error.response?.data?.message || "Failed to fetch course"
+        );
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
+    async fetchCoursesByDepartment({ commit }, departmentId) {
+      try {
+        commit("SET_LOADING", true);
+        commit("CLEAR_ERROR");
+        const response = await courseService.getCourseByDepartment(
+          departmentId
+        );
+        commit("SET_DEPARTMENT_COURSES", response.data.data.courses);
+        return response.data.data.courses;
+      } catch (error) {
+        commit(
+          "SET_ERROR",
+          error.response?.data?.message ||
+            "Failed to fetch courses for department"
         );
         throw error;
       } finally {

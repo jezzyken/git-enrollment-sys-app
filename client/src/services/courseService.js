@@ -9,6 +9,10 @@ export default {
     return api.get(`/course/${id}`);
   },
 
+  getCourseByDepartment(id) {
+    return api.get(`/course/department/${id}`);
+  },
+
   createCourse(courseData) {
     return api.post('/course', courseData);
   },

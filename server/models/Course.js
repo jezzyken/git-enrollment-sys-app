@@ -13,6 +13,12 @@ const courseSchema = new Schema(
       required: true,
       unique: true,
     },
+    departments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Department",
+      },
+    ],
   },
   {
     timestamps: true,
