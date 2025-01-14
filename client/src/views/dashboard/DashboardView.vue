@@ -93,7 +93,6 @@
               <bar-chart
                 v-if="enrollmentChartData"
                 :chart-data="enrollmentChartData"
-                :options="enhancedChartOptions"
                 :height="350"
               />
             </v-card-text>
@@ -223,7 +222,9 @@ export default {
         datasets: [
           {
             label: "Total Students",
-            backgroundColor: "#b22222",
+            backgroundColor: this.enrollmentsByCourse.map(
+              (item) => item.courseColor || "#b22222"
+            ),
             data: this.enrollmentsByCourse.map((item) => item.totalStudents),
           },
         ],

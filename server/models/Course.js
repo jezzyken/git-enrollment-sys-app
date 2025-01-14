@@ -13,6 +13,10 @@ const courseSchema = new Schema(
       required: true,
       unique: true,
     },
+    courseColor: {
+      type: String,
+      default: '#b22222'
+    },
     departments: [
       {
         type: mongoose.Schema.Types.ObjectId,
