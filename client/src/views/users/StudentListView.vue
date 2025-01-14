@@ -5,7 +5,7 @@
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
             <v-text-field
-              v-model="options.search"
+              v-model="search"
               prepend-inner-icon="mdi-magnify"
               placeholder="Search students..."
               hide-details
@@ -15,11 +15,10 @@
               dense
               class="search-field"
               style="max-width: 400px"
-              @keyup.enter="handleSearch"
             ></v-text-field>
 
             <div class="d-flex">
-              <v-menu offset-y>
+              <!-- <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                     v-bind="attrs"
@@ -63,9 +62,9 @@
                     <v-btn color="primary" @click="applyFilters">Apply</v-btn>
                   </div>
                 </v-card>
-              </v-menu>
+              </v-menu> -->
 
-              <v-menu offset-y>
+              <!-- <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
                     v-bind="attrs"
@@ -92,7 +91,7 @@
                     <v-list-item-title>PDF</v-list-item-title>
                   </v-list-item>
                 </v-list>
-              </v-menu>
+              </v-menu> -->
 
               <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
@@ -127,12 +126,7 @@
         :headers="headers"
         :items="filteredStudent"
         :loading="loading"
-        :options.sync="options"
-        :server-items-length="totalStudents"
-        :footer-props="{
-          'items-per-page-options': [10, 25, 50],
-          showFirstLastPage: true,
-        }"
+        :search="search"
       >
         <template v-slot:item.user.fullName="{ item }">
           <div class="d-flex align-center py-2">
@@ -274,6 +268,7 @@ export default {
   name: "StudentListView",
 
   data: () => ({
+    search: "",
     filters: {
       course: null,
       year: null,

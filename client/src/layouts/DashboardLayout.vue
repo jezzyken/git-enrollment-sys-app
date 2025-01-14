@@ -187,7 +187,22 @@ export default {
       },
       users: { title: "Users", icon: "mdi-account-multiple", to: "/users" },
       roles: { title: "Roles", icon: "mdi-account-multiple", to: "/roles" },
-      reports: { title: "Reports", icon: "mdi-file-chart", to: "/reports" },
+      reports: {
+        title: "Reports",
+        icon: "mdi-file-chart",
+        children: [
+          {
+            title: "Academic Reports",
+            icon: "mdi-book-open-variant",
+            to: "/reports",
+          },
+          {
+            title: "Student Reports",
+            icon: "mdi-book-multiple",
+            to: "/reports/students",
+          },
+        ],
+      },
     },
     accountMenu: [
       {
@@ -209,7 +224,7 @@ export default {
     },
 
     userRoles() {
-      return this.userData?.role?.map(r => r.name.toLowerCase()) || [];
+      return this.userData?.role?.map((r) => r.name.toLowerCase()) || [];
     },
 
     userInitials() {
@@ -240,20 +255,20 @@ export default {
 
     menuItems() {
       const roleMenuMap = {
-        'program head': ['dashboard', 'enrollment', 'professor', 'students'],
-        'registrar': ['dashboard', 'enrollment', 'students'],
-        'admin': Object.keys(this.allMenuItems), 
+        "program head": ["dashboard", "enrollment", "professor", "students"],
+        registrar: ["dashboard", "enrollment", "students"],
+        admin: Object.keys(this.allMenuItems),
       };
 
       const allowedMenus = new Set();
-      this.userRoles.forEach(role => {
+      this.userRoles.forEach((role) => {
         const menus = roleMenuMap[role] || [];
-        menus.forEach(menu => allowedMenus.add(menu));
+        menus.forEach((menu) => allowedMenus.add(menu));
       });
 
       return Object.keys(this.allMenuItems)
-        .filter(key => allowedMenus.has(key))
-        .map(key => this.allMenuItems[key]);
+        .filter((key) => allowedMenus.has(key))
+        .map((key) => this.allMenuItems[key]);
     },
   },
 
@@ -365,7 +380,7 @@ export default {
   overflow: hidden;
 }
 
-.initial{
-  color: #a52a2a
+.initial {
+  color: #a52a2a;
 }
 </style>

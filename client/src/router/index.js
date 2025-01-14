@@ -99,39 +99,11 @@ const routes = [
       {
         path: "/reports",
         component: () => import("@/views/reports/ReportsView.vue"),
-        children: [
-          {
-            path: "",
-            name: "Reports",
-          },
-          {
-            path: "teachers",
-            name: "TeacherReport",
-            component: () => import("@/views/reports/TeacherReport.vue"),
-            meta: {
-              title: "Teacher Reports",
-              requiresAuth: true,
-            },
-          },
-          {
-            path: "students",
-            name: "StudentReport",
-            component: () => import("@/views/reports/StudentReport.vue"),
-            meta: {
-              title: "Student Reports",
-              requiresAuth: true,
-            },
-          },
-          {
-            path: "schedules",
-            name: "ScheduleReport",
-            component: () => import("@/views/reports/ClassSchduleReport.vue"),
-            meta: {
-              title: "Class Schedule Reports",
-              requiresAuth: true,
-            },
-          },
-        ],
+      },
+      {
+        path: "/reports/students",
+        name: "Students Reports",
+        component: () => import("@/views/reports/StudentReport.vue"),
       },
     ],
   },

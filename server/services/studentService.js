@@ -74,7 +74,7 @@ exports.getAllStudents = async (query) => {
     })
     .populate({
       path: "enrollments",
-      select: "enrollmentStatus academicYear semester",
+      select: "enrollmentStatus academicYear semester yearLevel",
       options: { sort: { createdAt: -1 } },
     });
 };
