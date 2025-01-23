@@ -5,7 +5,7 @@
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
             <v-text-field
-              v-model="options.search"
+              v-model="search"
               prepend-inner-icon="mdi-magnify"
               placeholder="Search subjects..."
               hide-details
@@ -15,7 +15,6 @@
               dense
               class="search-field"
               style="max-width: 400px"
-              @keyup.enter="fetchSubjects"
             ></v-text-field>
 
             <v-btn color="primary" @click="openCreateDialog">
@@ -32,9 +31,7 @@
         :headers="headers"
         :items="subjects"
         :loading="loading"
-        :options.sync="options"
-        :server-items-length="totalSubjects"
-        :items-per-page="10"
+        :search="search"
       >
         <template v-slot:item.prerequisites="{ item }">
           <v-chip
@@ -246,10 +243,10 @@ export default {
 
   data: () => ({
     valid: false,
+    search: "",
     options: {
       page: 1,
       itemsPerPage: 10,
-      search: "",
     },
     createDialog: false,
     deleteDialog: false,

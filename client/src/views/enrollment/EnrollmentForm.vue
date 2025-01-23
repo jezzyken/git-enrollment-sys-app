@@ -74,14 +74,12 @@
                           dense
                           class="search-field"
                           style="max-width: 400px"
-                          @keyup.enter="handleSearch"
                         ></v-text-field>
                       </div>
 
                       <v-data-table
                         :headers="studentHeaders"
-                        :items="filteredStudent"
-                        :search="search"
+                        :items="filteredStudents"
                         :loading="loading"
                         single-select
                         show-select
@@ -982,6 +980,10 @@ export default {
     ...mapState("students", ["students"]),
     ...mapState("courses", ["courses"]),
     ...mapGetters("students", ["filteredStudent"]),
+
+    filteredStudents() {
+      return this.$store.getters["students/filteredStudent"](this.search);
+    },
 
     formattedDateOfBirth() {
       if (!this.studentForm.dateOfBirth) return "";

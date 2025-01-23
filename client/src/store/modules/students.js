@@ -15,22 +15,22 @@ export default {
     currentStudent: (state) => state.currentStudent,
     loading: (state) => state.loading,
     error: (state) => state.error,
-    filteredStudent: (state) => {
-      const userData = localStorage.getItem("user");
-      if (!userData) return [];
+    filteredStudent: (state) => (search) => {
+      if (!search) return state.students;
+      const searchLower = search.toLowerCase();
+      return state.students.filter((student) => {
+        const fullName = `${student.name.surname} ${student.name.firstName} ${
+          student.name.middleName || ""
+        } ${student.name.nameExtension || ""}`.toLowerCase();
+        const studentId = student.studentId?.toLowerCase() || "";
+        const course = student.course?.courseCode?.toLowerCase() || "";
 
-      const user = JSON.parse(userData).user;
-      const isAdmin = user.role.some((role) => role.name === "admin");
-
-      if (isAdmin) {
-        return state.students;
-      } else {
-        return state.students.filter((student) =>
-          student.course.departments.some(
-            (dept) => dept._id === user.academicInfo.department
-          )
+        return (
+          fullName.includes(searchLower) ||
+          studentId.includes(searchLower) ||
+          course.includes(searchLower)
         );
-      }
+      });
     },
   },
 

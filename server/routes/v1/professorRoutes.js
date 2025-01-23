@@ -1,20 +1,21 @@
 const express = require("express");
 const professorController = require("../../controllers/professorController.js");
+const { auth, authorize } = require("../../middleware/authMiddleware.js");
 const router = express.Router();
 
 router
   .route("/")
-  .get(professorController.getAllProfessors)
-  .post(professorController.createProfessor);
+  .get(auth, professorController.getAllProfessors)
+  .post(auth, professorController.createProfessor);
 
 router
   .route("/:id")
-  .get(professorController.getProfessor)
-  .patch(professorController.updateProfessor)
-  .delete(professorController.deleteProfessor);
+  .get(auth, professorController.getProfessor)
+  .patch(auth, professorController.updateProfessor)
+  .delete(auth, professorController.deleteProfessor);
 
 router
   .route("/:id/teaching-load")
-  .get(professorController.getProfessorTeachingLoad);
+  .get(auth, professorController.getProfessorTeachingLoad);
 
 module.exports = router;

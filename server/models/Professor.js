@@ -23,7 +23,6 @@ const ProfessorSchema = new Schema(
       position: String,
       employmentStatus: {
         type: String,
-        enum: ["full-time", "part-time", "adjunct", "visiting"],
         required: true,
       },
       dateHired: {
@@ -35,6 +34,10 @@ const ProfessorSchema = new Schema(
       type: String,
       enum: ["active", "inactive", "on-leave", "terminated"],
       default: "active",
+    },
+    active: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -66,6 +69,10 @@ ProfessorSchema.virtual("fullName").get(function () {
     this.name.firstName
   } ${this.name.middleName ? this.name.middleName + " " : ""}${this.name.surname}${this.name.nameExtension ? " " + this.name.nameExtension : ""}`;
 });
+
+ProfessorSchema.statics.softDelete = async function (id) {
+  return await this.findByIdAndUpdate(id, { active: false }, { new: true });
+};
 
 ProfessorSchema.index({ "name.surname": 1, "name.firstName": 1 });
 ProfessorSchema.index({ "academicInfo.department": 1 });

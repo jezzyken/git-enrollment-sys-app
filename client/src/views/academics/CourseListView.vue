@@ -5,7 +5,7 @@
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
             <v-text-field
-              v-model="options.search"
+              v-model="search"
               prepend-inner-icon="mdi-magnify"
               placeholder="Search courses..."
               hide-details
@@ -15,7 +15,6 @@
               dense
               class="search-field"
               style="max-width: 400px"
-              @keyup.enter="loadCourses"
             ></v-text-field>
 
             <v-btn color="primary" @click="openCreateDialog">
@@ -32,8 +31,7 @@
         :headers="headers"
         :items="courses"
         :loading="loading"
-        :items-per-page="10"
-        :search="options.search"
+        :search="search"
       >
         <!-- Departments column template -->
 
@@ -223,6 +221,7 @@ export default {
     dialog: false,
     deleteDialog: false,
     currentUser: null,
+    search: "", 
     options: {
       search: "",
     },

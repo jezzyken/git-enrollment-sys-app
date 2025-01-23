@@ -61,7 +61,7 @@ router.get("/enrollments/by-course", async (req, res) => {
       },
       {
         $group: {
-          _id: "$courseInfo.courseName",
+          _id: "$courseInfo.courseCode",
           courseColor: { $first: "$courseInfo.courseColor" },
           totalStudents: { $sum: 1 },
           byYearLevel: {
@@ -194,7 +194,7 @@ router.get("/recent-enrollments", async (req, res) => {
   try {
     const recentEnrollments = await Enrollment.find()
       .sort({ registrationDate: -1 })
-      .limit(10)
+      .limit(5)
       .populate("student")
       .populate("course");
 

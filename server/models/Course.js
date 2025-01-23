@@ -15,7 +15,7 @@ const courseSchema = new Schema(
     },
     courseColor: {
       type: String,
-      default: '#b22222'
+      default: "#b22222",
     },
     departments: [
       {
@@ -23,6 +23,10 @@ const courseSchema = new Schema(
         ref: "Department",
       },
     ],
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
@@ -30,5 +34,9 @@ const courseSchema = new Schema(
 );
 
 courseSchema.index({ courseName: 1 });
+
+courseSchema.statics.softDelete = async function (id) {
+  return await this.findByIdAndUpdate(id, { active: false }, { new: true });
+};
 
 module.exports = mongoose.model("Course", courseSchema);

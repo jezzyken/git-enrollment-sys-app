@@ -66,6 +66,7 @@ exports.createStudent = async (studentData, imageBuffer) => {
 
 exports.getAllStudents = async (query) => {
   return await StudentProfile.find(query)
+    .sort({ _id: -1 })
     .populate({
       path: "course",
       populate: {
@@ -80,7 +81,9 @@ exports.getAllStudents = async (query) => {
 };
 
 exports.getStudent = async (id) => {
-  const student = await StudentProfile.findById(id).populate("course");
+  const student = await StudentProfile.findById(id)
+    .sort({ _id: -1 })
+    .populate("course");
   if (!student) {
     throw new AppError("No student found with that ID", 404);
   }

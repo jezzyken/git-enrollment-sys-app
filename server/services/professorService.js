@@ -12,82 +12,67 @@ const getProfessorRoleId = async () => {
   return professorRole._id;
 };
 
-exports.createProfessor = async (data) => {
-  const professorRoleId = await getProfessorRoleId();
-
-  if (!data.role) {
-    data.role = [professorRoleId];
-  } else {
-    const roleSet = new Set(data.role.map((id) => id.toString()));
-    roleSet.add(professorRoleId.toString());
-    data.role = Array.from(roleSet).map((id) =>
-      id.toString() === professorRoleId.toString() ? professorRoleId : id
-    );
+exports.createProfessor = async (req, data) => {
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    if (!data.role) {
+      data.role = [professorRoleId];
+    } else {
+      const roleSet = new Set(data.role.map((id) => id.toString()));
+      roleSet.add(professorRoleId.toString());
+      data.role = Array.from(roleSet).map((id) =>
+        id.toString() === professorRoleId.toString() ? professorRoleId : id
+      );
+    }
   }
 
-  if (!data.password) {
-    delete data.password;
-  }
+  if (!data.password) delete data.password;
 
   const professor = await Professor.create(data);
-
-  return await Professor.findById(professor._id)
-    .populate({
-      path: "academicInfo.department",
-    })
-    .populate({
-      path: "role",
-    });
+  return professor.populate(["academicInfo.department", "role"]);
 };
 
-exports.getAllProfessors = async (query) => {
-  const professorRoleId = await getProfessorRoleId();
-
-  const professorQuery = {
-    ...query,
-    role: { $in: [professorRoleId] },
-    accountStatus: "active",
-  };
-
-  return await Professor.find(professorQuery)
-    .populate({
-      path: "academicInfo.department",
-    })
-    .populate({
-      path: "role",
-    })
-    .sort({ "name.surname": 1, "name.firstName": 1 });
-};
-
-exports.getProfessor = async (id) => {
-  const professorRoleId = await getProfessorRoleId();
-
-  const professor = await Professor.findOne({
-    _id: id,
-    role: { $in: [professorRoleId] },
-  })
-    .populate({
-      path: "academicInfo.department",
-    })
-    .populate({
-      path: "role",
-    });
-
-  if (!professor) {
-    throw new AppError("No professor found with that ID", 404);
+exports.getAllProfessors = async (req, query) => {
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    query = {
+      ...query,
+      role: { $in: [professorRoleId] },
+      accountStatus: "active",
+    };
   }
+
+  return Professor.find(query)
+    .populate(["academicInfo.department", "role"])
+    .sort({ _id: -1 });
+};
+
+exports.getProfessor = async (req, id) => {
+  const query = { _id: id };
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    query.role = { $in: [professorRoleId] };
+  }
+
+  const professor = await Professor.findOne(query).populate([
+    "academicInfo.department",
+    "role",
+  ]);
+
+  if (!professor) throw new AppError("Professor not found", 404);
   return professor;
 };
 
-exports.updateProfessor = async (id, data) => {
-  const professorRoleId = await getProfessorRoleId();
-
-  if (data.role) {
-    const roleSet = new Set(data.role.map((id) => id.toString()));
-    roleSet.add(professorRoleId.toString());
-    data.role = Array.from(roleSet).map((id) =>
-      id.toString() === professorRoleId.toString() ? professorRoleId : id
-    );
+exports.updateProfessor = async (req, id, data) => {
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    if (data.role) {
+      const roleSet = new Set(data.role.map((id) => id.toString()));
+      roleSet.add(professorRoleId.toString());
+      data.role = Array.from(roleSet).map((id) =>
+        id.toString() === professorRoleId.toString() ? professorRoleId : id
+      );
+    }
   }
 
   if (data.password === "") {
@@ -96,74 +81,55 @@ exports.updateProfessor = async (id, data) => {
     data.password = await bcrypt.hash(data.password, 12);
   }
 
-  const professor = await Professor.findOneAndUpdate(
-    {
-      _id: id,
-      role: { $in: [professorRoleId] },
-    },
-    data,
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .populate({
-      path: "academicInfo.department",
-    })
-    .populate({
-      path: "role",
-    });
-
-  if (!professor) {
-    throw new AppError("No professor found with that ID", 404);
+  const query = { _id: id };
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    query.role = { $in: [professorRoleId] };
   }
+
+  const professor = await Professor.findOneAndUpdate(query, data, {
+    new: true,
+    runValidators: true,
+  }).populate(["academicInfo.department", "role"]);
+
+  if (!professor) throw new AppError("Professor not found", 404);
   return professor;
 };
 
-exports.deleteProfessor = async (id) => {
-  const professorRoleId = await getProfessorRoleId();
-
-  const professor = await Professor.findOneAndDelete({
-    _id: id,
-    role: { $in: [professorRoleId] },
-  });
-
-  if (!professor) {
-    throw new AppError("No professor found with that ID", 404);
+exports.deleteProfessor = async (req, id) => {
+  const query = { _id: id };
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    query.role = { $in: [professorRoleId] };
   }
 
-  await TeacherLoad.deleteMany({ professor: id });
-
+  const professor = await Professor.softDelete(id);
+  if (!professor) throw new AppError("Professor not found", 404);
   return professor;
 };
 
 exports.getProfessorTeachingLoad = async (
+  req,
   professorId,
   academicYear,
   semester
 ) => {
-  const professorRoleId = await getProfessorRoleId();
-
-  const professor = await Professor.findOne({
-    _id: professorId,
-    role: { $in: [professorRoleId] },
-  });
-
-  if (!professor) {
-    throw new AppError("No professor found with that ID", 404);
+  const query = { _id: professorId };
+  if (!req.user.role.some((r) => r.name === "admin")) {
+    const professorRoleId = await getProfessorRoleId();
+    query.role = { $in: [professorRoleId] };
   }
+
+  const professor = await Professor.findOne(query);
+  if (!professor) throw new AppError("Professor not found", 404);
 
   const teachingLoad = await TeacherLoad.findOne({
     professor: professorId,
     academicYear,
     semester,
     status: "active",
-  }).populate({
-    path: "subjects.subject",
-  });
+  }).populate("subjects.subject");
 
-  if (!teachingLoad) {
-    throw new AppError("No teaching load found for this professor", 404);
-  }
+  if (!teachingLoad) throw new AppError("No teaching load found", 404);
   return teachingLoad;
 };

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card class="mb-4"> 
+    <v-card class="mb-4">
       <v-row align="center" no-gutters>
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
@@ -9,7 +9,7 @@
               prepend-inner-icon="mdi-magnify"
               placeholder="Search students..."
               hide-details
-              single-line 
+              single-line
               filled
               rounded
               dense
@@ -124,9 +124,8 @@
     <v-card>
       <v-data-table
         :headers="headers"
-        :items="filteredStudent"
+        :items="filteredStudents"
         :loading="loading"
-        :search="search"
       >
         <template v-slot:item.user.fullName="{ item }">
           <div class="d-flex align-center py-2">
@@ -262,7 +261,7 @@
 </template>
 
 <script>
-import { mapState, mapActions, mapGetters  } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 
 export default {
   name: "StudentListView",
@@ -319,6 +318,10 @@ export default {
   computed: {
     ...mapState("students", ["students", "totalStudents"]),
     ...mapGetters("students", ["filteredStudent"]),
+
+    filteredStudents() {
+      return this.$store.getters["students/filteredStudent"](this.search);
+    },
   },
 
   methods: {

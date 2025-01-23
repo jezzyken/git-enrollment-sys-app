@@ -7,14 +7,15 @@ exports.createSubject = async (data) => {
 
 exports.getAllSubjects = async (req) => {
   const { semester, yearLevel, course } = req.query;
-
-  const query = {};
+  const query = { $or: [{ active: true }, { active: { $exists: false } }] };
 
   if (semester) query.semester = semester;
   if (yearLevel) query.yearLevel = Number(yearLevel);
   if (course) query.course = { $in: [course] };
 
-  return await Subject.find(query).populate("course");
+  return await Subject.find(query)
+    .populate("course")
+    .sort({ _id: -1 });
 };
 
 exports.getSubject = async (id) => {
@@ -37,11 +38,7 @@ exports.updateSubject = async (id, data) => {
 };
 
 exports.deleteSubject = async (id) => {
-  const subject = await Subject.findByIdAndDelete(id);
-  if (!subject) {
-    throw new AppError("No subject found with that ID", 404);
-  }
-  return subject;
+  return await Subject.softDelete(id);
 };
 
 exports.getSubjectsByYearAndSemester = async (yearLevel, semester) => {

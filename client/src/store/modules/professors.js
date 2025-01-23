@@ -158,18 +158,22 @@ export default {
           p.academicInfo.employmentStatus === "full-time"
       );
     },
-    filteredProfessor: (state) => {
-      const userData = localStorage.getItem("user");
-      if (!userData) return [];
+    filteredProfessor: (state) => (search) => {
+      if (!search) return state.professors;
+      const searchLower = search.toLowerCase();
+      return state.professors.filter((prof) => {
+        const fullName = `${prof.name.surname} ${prof.name.firstName} ${
+          prof.name.middleName || ""
+        }`.toLowerCase();
+        const empId = prof.employeeId?.toLowerCase() || "";
+        const dept = prof.academicInfo?.department?.name?.toLowerCase() || "";
 
-      const user = JSON.parse(userData).user;
-      const isAdmin = user.role.some((role) => role.name === "admin");
-
-      if (isAdmin) {
-        return state.professors;
-      } else {
-        return state.professors.filter((prof) => prof.academicInfo.department._id === user.academicInfo.department);
-      }
+        return (
+          fullName.includes(searchLower) ||
+          empId.includes(searchLower) ||
+          dept.includes(searchLower)
+        );
+      });
     },
   },
 };

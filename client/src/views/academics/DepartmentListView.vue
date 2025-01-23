@@ -5,7 +5,7 @@
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
             <v-text-field
-              v-model="options.search"
+              v-model="search"
               prepend-inner-icon="mdi-magnify"
               placeholder="Search departments..."
               hide-details
@@ -15,7 +15,6 @@
               dense
               class="search-field"
               style="max-width: 300px"
-              @keyup.enter="fetchDepartments"
             ></v-text-field>
 
             <v-btn color="primary" @click="openCreateDialog">
@@ -32,9 +31,7 @@
         :headers="headers"
         :items="departments"
         :loading="loading"
-        :options.sync="options"
-        :server-items-length="totalDepartments"
-        :items-per-page="10"
+        :search="search"
       >
         <template v-slot:item.actions="{ item }">
           <div class="d-flex justify-end">
@@ -161,6 +158,7 @@ export default {
 
   data: () => ({
     valid: false,
+    search: "",
     options: {
       page: 1,
       itemsPerPage: 10,

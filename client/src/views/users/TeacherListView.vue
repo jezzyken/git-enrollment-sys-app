@@ -5,7 +5,7 @@
         <v-col cols="12">
           <div class="d-flex justify-space-between pa-4">
             <v-text-field
-              v-model="options.search"
+              v-model="search"
               prepend-inner-icon="mdi-magnify"
               placeholder="Search professors..."
               hide-details
@@ -15,7 +15,6 @@
               dense
               class="search-field"
               style="max-width: 300px"
-              @keyup.enter="fetchProfessors"
             ></v-text-field>
 
             <v-btn color="primary" @click="openCreateDialog">
@@ -30,11 +29,8 @@
     <v-card>
       <v-data-table
         :headers="headers"
-        :items="filteredProfessor"
+        :items="filteredProfessors"
         :loading="loading"
-        :options.sync="options"
-        :server-items-length="totalProfessors"
-        :items-per-page="10"
       >
         <template v-slot:item.select="{ item }">
           <v-btn x-small color="primary" @click="selectProfessor(item)" dark>
@@ -282,6 +278,7 @@ export default {
     deleteDialog: false,
     dateHiredMenu: false,
     formValid: false,
+    search: "",
     options: {
       page: 1,
       itemsPerPage: 10,
@@ -332,6 +329,10 @@ export default {
     ...mapState("departments", ["departments"]),
     ...mapState("roles", ["roles"]),
     ...mapGetters("professors", ["filteredProfessor"]),
+
+    filteredProfessors() {
+      return this.$store.getters["professors/filteredProfessor"](this.search);
+    },
   },
 
   methods: {
@@ -406,15 +407,20 @@ export default {
       if (!this.$refs.form.validate()) return;
 
       this.loading = true;
-      try {
-        const professorRole = this.roles.find(
-          (role) => role.name.toLowerCase() === "professor"
-        );
-        if (!professorRole) {
-          throw new Error("Professor role not found");
-        }
 
-        this.form.role = [professorRole._id];
+      const userRole = JSON.parse(localStorage.getItem("user")).user.role;
+      const isAdmin = userRole.some(
+        (role) => role.name.toLowerCase() === "admin"
+      );
+
+      try {
+        if (!isAdmin) {
+          const professorRole = this.roles.find(
+            (role) => role.name.toLowerCase() === "professor"
+          );
+          if (!professorRole) throw new Error("Professor role not found");
+          this.form.role = [professorRole._id];
+        }
 
         if (this.editMode) {
           await this.updateProfessor({
@@ -436,6 +442,7 @@ export default {
         this.closeDialog();
         this.fetchProfessors();
       } catch (error) {
+        console.log(error);
         this.showSnackbarMessage(
           error.response?.data?.message || "An error occurred!",
           "error"
@@ -494,7 +501,7 @@ export default {
   created() {
     this.loadInitialData();
 
-    console.log(localStorage.getItem("user"));
+    console.log(JSON.parse(localStorage.getItem("user")).user.role);
   },
 };
 </script>

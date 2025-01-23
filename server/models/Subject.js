@@ -37,6 +37,10 @@ const subjectSchema = new Schema(
         ref: "Course",
       },
     ],
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
@@ -49,5 +53,9 @@ subjectSchema.pre("save", function (next) {
   }
   next();
 });
+
+subjectSchema.statics.softDelete = async function (id) {
+  return await this.findByIdAndUpdate(id, { active: false }, { new: true });
+};
 
 module.exports = mongoose.model("Subject", subjectSchema);

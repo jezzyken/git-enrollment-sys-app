@@ -2,7 +2,7 @@ const professorService = require('../services/professorService');
 const catchAsync = require('../utils/catchAsync');
 
 exports.createProfessor = catchAsync(async (req, res) => {
-  const professor = await professorService.createProfessor(req.body);
+  const professor = await professorService.createProfessor(req, req.body);
   res.status(201).json({
     status: 'success',
     data: { professor }
@@ -10,8 +10,7 @@ exports.createProfessor = catchAsync(async (req, res) => {
 });
 
 exports.getAllProfessors = catchAsync(async (req, res) => {
-  const professors = await professorService.getAllProfessors(req.query);
-  console.log(professors)
+  const professors = await professorService.getAllProfessors(req);
   res.status(200).json({
     status: 'success',
     results: professors.length,
@@ -20,7 +19,7 @@ exports.getAllProfessors = catchAsync(async (req, res) => {
 });
 
 exports.getProfessor = catchAsync(async (req, res) => {
-  const professor = await professorService.getProfessor(req.params.id);
+  const professor = await professorService.getProfessor(req, req.params.id);
   res.status(200).json({
     status: 'success',
     data: { professor }
