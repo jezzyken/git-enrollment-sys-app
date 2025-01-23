@@ -9,7 +9,7 @@
 
         <!-- Search Field -->
         <v-text-field
-          v-model="options.search"
+          v-model="search"
           prepend-inner-icon="mdi-magnify"
           label="Search roles..."
           single-line
@@ -18,7 +18,6 @@
           dense
           class="mr-4"
           style="max-width: 300px"
-          @keyup.enter="handleSearch"
         ></v-text-field>
 
         <!-- Add Role Button -->
@@ -33,11 +32,7 @@
         :headers="headers"
         :items="roles"
         :loading="loading"
-        :options.sync="options"
-        :footer-props="{
-          'items-per-page-options': [5, 10, 25, 50],
-          showFirstLastPage: true,
-        }"
+        :search="search"
         class="elevation-1"
       >
         <!-- Custom Column Slots -->
@@ -177,6 +172,7 @@ export default {
     showSnackbar: false,
     snackbarText: '',
     snackbarColor: 'success',
+    search: "",
     options: {
       page: 1,
       itemsPerPage: 10,

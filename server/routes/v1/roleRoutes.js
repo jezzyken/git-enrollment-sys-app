@@ -1,11 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Role = require('../../models/Roles'); // Adjust path as needed
+const Role = require("../../models/Roles"); 
 
 // GET all roles
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const roles = await Role.find();
+    const roles = await Role.find({
+      $or: [{ active: true }, { active: { $exists: false } }],
+    });
     res.json(roles);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -13,11 +15,11 @@ router.get('/', async (req, res) => {
 });
 
 // GET single role by ID
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const role = await Role.findById(req.params.id);
     if (!role) {
-      return res.status(404).json({ message: 'Role not found' });
+      return res.status(404).json({ message: "Role not found" });
     }
     res.json(role);
   } catch (error) {
@@ -26,9 +28,9 @@ router.get('/:id', async (req, res) => {
 });
 
 // CREATE new role
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   const role = new Role({
-    name: req.body.name
+    name: req.body.name,
   });
 
   try {
@@ -40,11 +42,11 @@ router.post('/', async (req, res) => {
 });
 
 // UPDATE role
-router.put('/:id', async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const role = await Role.findById(req.params.id);
     if (!role) {
-      return res.status(404).json({ message: 'Role not found' });
+      return res.status(404).json({ message: "Role not found" });
     }
 
     role.name = req.body.name;
@@ -56,15 +58,13 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE role
-router.delete('/:id', async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
-    const role = await Role.findById(req.params.id);
-    if (!role) {
-      return res.status(404).json({ message: 'Role not found' });
+    const professor = await Role.softDelete(req.params.id);
+    if (!professor) {
+      return res.status(404).json({ message: "Role not found" });
     }
-
-    await role.deleteOne();
-    res.json({ message: 'Role deleted' });
+    res.json({ message: "Role deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -13,32 +13,34 @@ const getProfessorRoleId = async () => {
 };
 
 exports.createProfessor = async (req, data) => {
-  if (!req.user.role.some((r) => r.name === "admin")) {
-    const professorRoleId = await getProfessorRoleId();
-    if (!data.role) {
-      data.role = [professorRoleId];
-    } else {
-      const roleSet = new Set(data.role.map((id) => id.toString()));
-      roleSet.add(professorRoleId.toString());
-      data.role = Array.from(roleSet).map((id) =>
-        id.toString() === professorRoleId.toString() ? professorRoleId : id
-      );
-    }
-  }
-
-  if (!data.password) delete data.password;
-
+  // if (!req.user.role.some((r) => r.name === "admin")) {
+  //   const professorRoleId = await getProfessorRoleId();
+  //   if (!data.role) {
+  //     data.role = [professorRoleId];
+  //   } else {
+  //     const roleSet = new Set(data.role.map((id) => id.toString()));
+  //     roleSet.add(professorRoleId.toString());
+  //     data.role = Array.from(roleSet).map((id) =>
+  //       id.toString() === professorRoleId.toString() ? professorRoleId : id
+  //     );
+  //   }
+  // }
+  // if (!data.password) delete data.password;
   const professor = await Professor.create(data);
   return professor.populate(["academicInfo.department", "role"]);
 };
 
-exports.getAllProfessors = async (req, query) => {
+exports.getAllProfessors = async (req) => {
+  const query = {
+    accountStatus: "active",
+    $or: [{ active: true }, { active: { $exists: false } }],
+  };
+  
   if (!req.user.role.some((r) => r.name === "admin")) {
     const professorRoleId = await getProfessorRoleId();
     query = {
       ...query,
       role: { $in: [professorRoleId] },
-      accountStatus: "active",
     };
   }
 
@@ -63,47 +65,50 @@ exports.getProfessor = async (req, id) => {
   return professor;
 };
 
-exports.updateProfessor = async (req, id, data) => {
-  if (!req.user.role.some((r) => r.name === "admin")) {
-    const professorRoleId = await getProfessorRoleId();
-    if (data.role) {
-      const roleSet = new Set(data.role.map((id) => id.toString()));
-      roleSet.add(professorRoleId.toString());
-      data.role = Array.from(roleSet).map((id) =>
-        id.toString() === professorRoleId.toString() ? professorRoleId : id
-      );
+exports.updateProfessor = async (req) => {
+  // if (!req.user.role.some((r) => r.name === "admin")) {
+  //   const professorRoleId = await getProfessorRoleId();
+  //   if (data.role) {
+  //     const roleSet = new Set(data.role.map((id) => id.toString()));
+  //     roleSet.add(professorRoleId.toString());
+  //     data.role = Array.from(roleSet).map((id) =>
+  //       id.toString() === professorRoleId.toString() ? professorRoleId : id
+  //     );
+  //   }
+  // }
+
+  // if (data.password === "") {
+  //   delete data.password;
+  // } else if (data.password) {
+  //   data.password = await bcrypt.hash(data.password, 12);
+  // }
+
+  // const query = { _id: id };
+  // if (!req.user.role.some((r) => r.name === "admin")) {
+  //   const professorRoleId = await getProfessorRoleId();
+  //   query.role = { $in: [professorRoleId] };
+  // }
+  const professor = await Professor.findOneAndUpdate(
+    { _id: req.params.id },
+    req.body,
+    {
+      new: true,
+      runValidators: true,
     }
-  }
-
-  if (data.password === "") {
-    delete data.password;
-  } else if (data.password) {
-    data.password = await bcrypt.hash(data.password, 12);
-  }
-
-  const query = { _id: id };
-  if (!req.user.role.some((r) => r.name === "admin")) {
-    const professorRoleId = await getProfessorRoleId();
-    query.role = { $in: [professorRoleId] };
-  }
-
-  const professor = await Professor.findOneAndUpdate(query, data, {
-    new: true,
-    runValidators: true,
-  }).populate(["academicInfo.department", "role"]);
+  ).populate(["academicInfo.department", "role"]);
 
   if (!professor) throw new AppError("Professor not found", 404);
   return professor;
 };
 
-exports.deleteProfessor = async (req, id) => {
-  const query = { _id: id };
-  if (!req.user.role.some((r) => r.name === "admin")) {
-    const professorRoleId = await getProfessorRoleId();
-    query.role = { $in: [professorRoleId] };
-  }
+exports.deleteProfessor = async (req) => {
+  // const query = { _id: id };
+  // if (!req.user.role.some((r) => r.name === "admin")) {
+  //   const professorRoleId = await getProfessorRoleId();
+  //   query.role = { $in: [professorRoleId] };
+  // }
 
-  const professor = await Professor.softDelete(id);
+  const professor = await Professor.softDelete(req.params.id);
   if (!professor) throw new AppError("Professor not found", 404);
   return professor;
 };

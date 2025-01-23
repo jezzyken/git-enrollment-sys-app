@@ -13,17 +13,17 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: function () {
-        if (this.isNew) {
-          return !this.role.some(async (roleId) => {
-            const role = await Role.findById(roleId);
-            return role && role.name === "professor";
-          });
-        }
-        return (
-          this.role && !this.role.some((role) => role.name === "professor")
-        );
-      },
+      // required: function () {
+      //   if (this.isNew) {
+      //     return !this.role.some(async (roleId) => {
+      //       const role = await Role.findById(roleId);
+      //       return role && role.name === "professor";
+      //     });
+      //   }
+      //   return (
+      //     this.role && !this.role.some((role) => role.name === "professor")
+      //   );
+      // },
     },
     name: {
       surname: { type: String },
@@ -63,6 +63,10 @@ const userSchema = new Schema(
       enum: ["active", "inactive"],
       default: "active",
     },
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
@@ -95,6 +99,10 @@ userSchema.virtual("fullName").get(function () {
     this.name.firstName
   } ${this.name.middleName ? this.name.middleName + " " : ""}${this.name.surname}${this.name.nameExtension ? " " + this.name.nameExtension : ""}`;
 });
+
+userSchema.statics.softDelete = async function (id) {
+  return await this.findByIdAndUpdate(id, { active: false }, { new: true });
+};
 
 userSchema.index({ "name.surname": 1, "name.firstName": 1 });
 userSchema.index({ "academicInfo.department": 1 });

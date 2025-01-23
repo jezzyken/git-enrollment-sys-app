@@ -27,7 +27,7 @@ exports.getProfessor = catchAsync(async (req, res) => {
 });
 
 exports.updateProfessor = catchAsync(async (req, res) => {
-  const professor = await professorService.updateProfessor(req.params.id, req.body);
+  const professor = await professorService.updateProfessor(req);
   res.status(200).json({
     status: 'success',
     data: { professor }
@@ -35,7 +35,7 @@ exports.updateProfessor = catchAsync(async (req, res) => {
 });
 
 exports.deleteProfessor = catchAsync(async (req, res) => {
-  await professorService.deleteProfessor(req.params.id);
+  await professorService.deleteProfessor(req);
   res.status(204).json({
     status: 'success',
     data: null
