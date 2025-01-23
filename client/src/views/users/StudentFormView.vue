@@ -675,7 +675,7 @@
                           {{ fullName }}
                         </div>
                         <div class="text-h6 grey--text">
-                          {{ formData.course }}
+                          {{ formData.course.courseName }}
                         </div>
                       </div>
                     </div>
@@ -1334,13 +1334,12 @@ export default {
       try {
         const submitData = {
           ...this.formData,
+          course: this.formData.course._id,
           dateOfBirth: this.formData?.dateOfBirth
             ? new Date(this.formData.dateOfBirth).toISOString()
             : null,
           image: this.imagePreview || "",
         };
-
-        console.log(submitData)
 
         const studentId = this.$route.query.studentId;
 

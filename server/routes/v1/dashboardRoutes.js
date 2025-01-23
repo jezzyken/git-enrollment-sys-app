@@ -15,8 +15,7 @@ router.get("/stats", async (req, res) => {
 
     const stats = {
       totalEnrollments: await Enrollment.countDocuments({
-        academicYear: currentAcademicYear,
-        semester: currentSemester,
+         enrollmentStatus: "enrolled"
       }),
       totalProfessors: await Professor.countDocuments({
         accountStatus: "active",
@@ -37,6 +36,9 @@ router.get("/stats", async (req, res) => {
           },
         },
       ]),
+      // enrolledCount: await Enrollment.countDocuments({
+      //   enrollmentStatus: "enrolled"
+      // })
     };
 
     res.json(stats);
