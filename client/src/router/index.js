@@ -92,6 +92,16 @@ const routes = [
         component: () => import("@/views/users/ProfessorProfile.vue"),
       },
       {
+        path: "/professor/:id/profile/add-subject",
+        name: "Add Subject Load",
+        component: () => import("@/views/users/SubjectLoad.vue"),
+      },
+      {
+        path: "/professor/:id/profile/edit-subject/:subjectId",
+        name: "Edit Subject Load",
+        component: () => import("@/views/users/SubjectLoad.vue"),
+      },
+      {
         path: "/enrollment",
         name: "Enrollment",
         component: () => import("@/views/enrollment/EnrollmentForm.vue"),

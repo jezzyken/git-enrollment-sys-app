@@ -58,7 +58,7 @@ export default {
         commit("SET_LOADING", true);
         commit("CLEAR_ERROR");
         const response = await courseService.getCourses();
-        console.log(response);
+        console.log({courses: response});
         commit("SET_COURSES", response.data.data.courses);
       } catch (error) {
         commit(

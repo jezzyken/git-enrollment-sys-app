@@ -22,16 +22,84 @@
               New Subject
             </v-btn>
           </div>
+
+          <div class="px-4 pb-4 d-flex flex-wrap align-center mt-5">
+            <v-select
+              v-model="filters.course"
+              :items="courseOptions"
+              item-text="courseCode"
+              item-value="_id"
+              label="Filter by Course"
+              clearable
+              class="mr-4"
+              style="min-width: 200px"
+              dense
+            >
+              <template v-slot:selection="{ item }">
+                <v-chip color="primary" text-color="white" small label>
+                  {{ item.courseCode }}
+                </v-chip>
+              </template>
+              <template v-slot:item="{ item }">
+                <v-chip
+                  color="primary"
+                  text-color="white"
+                  small
+                  label
+                  class="mr-2"
+                >
+                  {{ item.courseCode }}
+                </v-chip>
+                <span class="text-caption">{{ item.courseName }}</span>
+              </template>
+            </v-select>
+
+            <v-select
+              v-model="filters.yearLevel"
+              :items="yearLevels"
+              label="Filter by Year Level"
+              clearable
+              class="mr-4"
+              style="min-width: 150px"
+              dense
+            ></v-select>
+
+            <v-select
+              v-model="filters.semester"
+              :items="semesters"
+              label="Filter by Semester"
+              clearable
+              style="min-width: 150px"
+              dense
+            ></v-select>
+
+            <v-btn
+              text
+              color="primary"
+              @click="resetFilters"
+              class="ml-2"
+              :disabled="!hasActiveFilters"
+            >
+              <v-icon left small>mdi-filter-off</v-icon>
+              Clear Filters
+            </v-btn>
+          </div>
         </v-col>
       </v-row>
     </v-card>
 
+    <!-- Data Table -->
     <v-card>
       <v-data-table
         :headers="headers"
-        :items="subjects"
+        :items="filteredSubjects"
         :loading="loading"
         :search="search"
+        :items-per-page="10"
+        :footer-props="{
+          'items-per-page-options': [10, 25, 50, -1],
+          'items-per-page-text': 'Rows per page:',
+        }"
       >
         <template v-slot:item.prerequisites="{ item }">
           <v-chip
@@ -52,8 +120,8 @@
             :key="course._id"
             class="mr-1 my-1"
             small
-            outlined
             color="primary"
+            text-color="white"
           >
             {{ course.courseCode }}
           </v-chip>
@@ -91,6 +159,7 @@
       </v-data-table>
     </v-card>
 
+    <!-- Create/Edit Dialog -->
     <v-dialog v-model="createDialog" max-width="600px">
       <v-card>
         <v-card-title>
@@ -169,7 +238,25 @@
                 multiple
                 chips
                 required
-              ></v-select>
+              >
+                <template v-slot:selection="{ item }">
+                  <v-chip color="primary" text-color="white" small label>
+                    {{ item.courseCode }}
+                  </v-chip>
+                </template>
+                <template v-slot:item="{ item }">
+                  <v-chip
+                    color="primary"
+                    text-color="white"
+                    small
+                    label
+                    class="mr-2"
+                  >
+                    {{ item.courseCode }}
+                  </v-chip>
+                  <span class="text-caption">{{ item.courseName }}</span>
+                </template>
+              </v-select>
             </v-form>
           </v-container>
         </v-card-text>
@@ -189,6 +276,7 @@
       </v-card>
     </v-dialog>
 
+    <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="400">
       <v-card>
         <v-card-title class="error--text">
@@ -218,6 +306,7 @@
       </v-card>
     </v-dialog>
 
+    <!-- Snackbar -->
     <v-snackbar
       v-model="showSnackbar"
       :color="snackbarColor"
@@ -251,9 +340,13 @@ export default {
     createDialog: false,
     deleteDialog: false,
     subjectToDelete: null,
-    courseOptions: [],
     yearLevels: [1, 2, 3, 4],
     semesters: ["First", "Second"],
+    filters: {
+      course: null,
+      yearLevel: null,
+      semester: null,
+    },
     form: {
       catNo: "",
       DescriptiveTitle: "",
@@ -266,7 +359,8 @@ export default {
     formRules: {
       catNo: [
         (v) => !!v || "Course Code is required",
-        (v) => (v && v.length >= 2) || "Course Code must be at least 2 characters",
+        (v) =>
+          (v && v.length >= 2) || "Course Code must be at least 2 characters",
         (v) =>
           /^[A-Za-z0-9\s-]+$/.test(v) ||
           "Course Code can only contain letters, numbers, spaces, and hyphens",
@@ -310,11 +404,55 @@ export default {
 
   computed: {
     ...mapState("subjects", ["subjects", "totalSubjects"]),
+    ...mapState("courses", ["courses"]),
+
+    hasActiveFilters() {
+      return Object.values(this.filters).some((filter) => filter !== null);
+    },
+
+    courseOptions() {
+      return this.courses.map((course) => ({
+        _id: course._id,
+        courseCode: course.courseCode,
+        courseName: course.courseName,
+        courseColor: course.courseColor,
+      }));
+    },
 
     prerequisiteOptions() {
       return this.subjects
         .map((subject) => subject.catNo)
         .filter((catNo) => !this.editMode || catNo !== this.form.catNo);
+    },
+
+    filteredSubjects() {
+      return this.subjects.filter((subject) => {
+        // Course filter
+        if (this.filters.course) {
+          const hasCourse = subject.course.some(
+            (c) => c._id === this.filters.course
+          );
+          if (!hasCourse) return false;
+        }
+
+        // Year level filter
+        if (
+          this.filters.yearLevel !== null &&
+          subject.yearLevel !== this.filters.yearLevel
+        ) {
+          return false;
+        }
+
+        // Semester filter
+        if (
+          this.filters.semester &&
+          subject.semester !== this.filters.semester
+        ) {
+          return false;
+        }
+
+        return true;
+      });
     },
   },
 
@@ -327,13 +465,13 @@ export default {
     ]),
     ...mapActions("courses", ["fetchCourses"]),
 
-    async loadCourseOptions() {
-      try {
-        await this.fetchCourses();
-        this.courseOptions = this.$store.state.courses.courses;
-      } catch (error) {
-        this.showSnackbarMessage("Failed to load courses", "error");
-      }
+    resetFilters() {
+      this.filters = {
+        course: null,
+        yearLevel: null,
+        semester: null,
+      };
+      localStorage.removeItem("subjectFilters");
     },
 
     openCreateDialog() {
@@ -504,7 +642,7 @@ export default {
       try {
         await this.deleteSubject(this.subjectToDelete._id);
         this.showSnackbarMessage("Subject deleted successfully!", "success");
-        this.fetchSubjects();
+        await this.fetchSubjects();
       } catch (error) {
         this.showSnackbarMessage(
           error.response?.data?.message || "Failed to delete subject!",
@@ -521,10 +659,17 @@ export default {
       this.snackbarColor = color;
       this.showSnackbar = true;
     },
-  },
 
-  async created() {
-    await Promise.all([this.fetchSubjects(), this.loadCourseOptions()]);
+    saveFiltersToLocalStorage() {
+      localStorage.setItem("subjectFilters", JSON.stringify(this.filters));
+    },
+
+    loadFiltersFromLocalStorage() {
+      const savedFilters = localStorage.getItem("subjectFilters");
+      if (savedFilters) {
+        this.filters = JSON.parse(savedFilters);
+      }
+    },
   },
 
   watch: {
@@ -540,11 +685,9 @@ export default {
       }
     },
 
-    // Fix for infinite loop
     "form.prerequisites": {
       handler(newVal) {
         if (newVal && Array.isArray(newVal)) {
-          // Only update if there are actually duplicates
           const uniquePrereqs = [...new Set(newVal)];
           if (uniquePrereqs.length !== newVal.length) {
             this.$nextTick(() => {
@@ -555,19 +698,39 @@ export default {
       },
       deep: true,
     },
+
+    filters: {
+      handler() {
+        this.saveFiltersToLocalStorage();
+      },
+      deep: true,
+    },
+  },
+
+  async created() {
+    this.loadFiltersFromLocalStorage();
+    await Promise.all([this.fetchSubjects(), this.fetchCourses()]);
   },
 };
 </script>
 
 <style scoped>
-.error-text {
-  color: var(--v-error-base);
-  font-size: 12px;
-  margin-top: 4px;
+.v-select.filter-select {
+  max-width: 200px;
+}
+
+.filter-chip {
+  margin: 2px;
 }
 
 .v-chip {
   margin: 2px;
+}
+
+.error-text {
+  color: var(--v-error-base);
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 .form-section {

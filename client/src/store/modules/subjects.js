@@ -13,7 +13,7 @@ export default {
   getters: {
     subjects: (state) => state.subjects,
     currentSubject: (state) => state.currentSubject,
-    loading: (state) => state.loading,
+    loading: (state) => state.loading, 
     error: (state) => state.error,
 
     subjectsByYear: (state) => (year) => {

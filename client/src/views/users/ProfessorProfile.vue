@@ -168,7 +168,7 @@
             class="mr-2"
             style="min-width: 150px"
           ></v-select>
-          <v-btn color="primary" @click="openAddLoadDialog()" class="ml-2">
+          <v-btn color="primary" @click="openAddSubject" class="ml-2">
             <v-icon left>mdi-plus</v-icon>
             Add Subject
           </v-btn>
@@ -215,7 +215,7 @@
             small
             color="primary"
             class="mr-2"
-            @click="openAddLoadDialog(item)"
+            @click="editSubject(item)"
           >
             <v-icon small>mdi-pencil</v-icon>
           </v-btn>
@@ -226,7 +226,7 @@
       </v-data-table>
     </v-card>
 
-    <v-dialog v-model="addLoadDialog" max-width="800px">
+    <!-- <v-dialog v-model="addLoadDialog" max-width="800px">
       <v-card>
         <v-card-title class="headline">
           {{ isEditing ? "Edit Subject Load" : "Add Subject Load" }}
@@ -359,7 +359,7 @@
           </v-card-actions>
         </v-form>
       </v-card>
-    </v-dialog>
+    </v-dialog> -->
 
     <!-- Students List Dialog -->
     <v-dialog v-model="studentsDialog" max-width="900px">
@@ -768,6 +768,14 @@ export default {
       this.previewImage = null;
       this.selectedFile = null;
       this.$refs.fileInput.value = "";
+    },
+
+    openAddSubject() {
+      this.$router.push(`/professor/${this.professor._id}/profile/add-subject`);
+    },
+
+    editSubject(item) {
+      this.$router.push(`/professor/${this.professor._id}/profile/edit-subject/${item._id}`);
     },
 
     openAddLoadDialog(item = null) {
