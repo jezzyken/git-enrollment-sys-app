@@ -616,8 +616,10 @@ export default {
         professor: null,
       }));
 
+      console.log(evaluatedSubjects)
+
       const mergedSchedules = evaluatedSubjects.map(subject => {
-        const matchingSchedule = classSchedules.find(
+        const matchingSchedule = classSchedules?.find(
           schedule => schedule.subjectCode === subject.catNo
         );
 

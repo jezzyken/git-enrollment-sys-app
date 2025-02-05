@@ -48,6 +48,9 @@ const EnrollmentSchema = new Schema(
       enum: ["pending", "evaluated", "enrolled"],
       default: "pending",
     },
+    studentStatus: {
+      type: String,
+    },
     registrationDate: {
       type: Date,
       default: Date.now(),

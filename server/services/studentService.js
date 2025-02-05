@@ -1,7 +1,7 @@
-const { populate } = require("../models/Roles");
 const StudentProfile = require("../models/StudentProfile");
+const Subject = require("../models/Subject");
+const Enrollment = require("../models/Enrollment");
 const AppError = require("../utils/appError");
-const { Readable } = require("stream");
 
 const bufferToStream = (buffer) => {
   if (!Buffer.isBuffer(buffer)) {
@@ -65,19 +65,80 @@ exports.createStudent = async (studentData, imageBuffer) => {
 };
 
 exports.getAllStudents = async (query) => {
-  return await StudentProfile.find(query)
-    .sort({ _id: -1 })
-    .populate({
-      path: "course",
-      populate: {
-        path: "departments",
-      },
-    })
-    .populate({
-      path: "enrollments",
-      select: "enrollmentStatus academicYear semester yearLevel",
-      options: { sort: { createdAt: -1 } },
-    });
+  try {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    const academicYear = `${currentYear}-${currentYear + 1}`;
+    const semester =
+      currentMonth >= 6 && currentMonth <= 12 ? "First" : "Second";
+
+    const students = await StudentProfile.find(query)
+      .sort({ _id: -1 })
+      .populate({
+        path: "course",
+        populate: {
+          path: "departments",
+        },
+      })
+      .populate({
+        path: "enrollments",
+        populate: {
+          path: "subjects",
+          select: "catNo DescriptiveTitle units yearLevel semester",
+        },
+        // match: {
+        //   academicYear: academicYear,
+        //   semester: semester,
+        // },
+        options: { sort: { createdAt: -1 } },
+      });
+
+
+    const enrichedStudents = await Promise.all(
+      students.map(async (student) => {
+        const studentObj = student.toObject();
+
+        if (studentObj.enrollments && studentObj.enrollments.length > 0) {
+          const currentEnrollment = studentObj.enrollments[0];
+
+          const requiredSubjects = await Subject.find({
+            course: student.course._id,
+            yearLevel: currentEnrollment.yearLevel,
+            semester: semester,
+            active: true,
+          });
+
+          const requiredSubjectIds = new Set(
+            requiredSubjects.map((sub) => sub._id.toString())
+          );
+          const enrolledSubjectIds = new Set(
+            currentEnrollment.subjects.map((sub) => sub._id.toString())
+          );
+
+          let isIrregular = false;
+          for (const requiredId of requiredSubjectIds) {
+            if (!enrolledSubjectIds.has(requiredId)) {
+              isIrregular = true;
+              break;
+            }
+          }
+
+          const newStatus = isIrregular ? "irregular" : "regular";
+          await Enrollment.findByIdAndUpdate(currentEnrollment._id, {
+            studentStatus: newStatus,
+          });
+          currentEnrollment.studentStatus = newStatus;
+        }
+
+        return studentObj;
+      })
+    );
+
+    return enrichedStudents;
+  } catch (error) {
+    throw new AppError("Error fetching students: " + error.message, 500);
+  }
 };
 
 exports.getStudent = async (id) => {

@@ -142,7 +142,7 @@ export default {
     async generatePDF() {
       const element = document.getElementById("registration-form");
       const opt = {
-        margin: 0.5,
+        margin: [0.1, 0.5, 0.5, 0.5],
         filename: `registration-form-${this.student?.studentId}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { scale: 2 },
@@ -157,71 +157,98 @@ export default {
 
 <style scoped>
 .registration-form {
-  padding: 20px;
+  padding: 0.1in 0 0 0; /* Reduced from 0.25in to 0.1in */
   max-width: 8.5in;
   margin: 0 auto;
   background: white;
   font-family: Arial, sans-serif;
+  font-size: 10px;
 }
 
 .form-header {
-  text-align: center;
-  margin-bottom: 20px;
+ text-align: center;
+ margin-bottom: 10px;
 }
 
 .school-info h2 {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 10px 0;
+ font-size: 16px;
+ font-weight: bold;
+ margin: 8px 0;
+}
+
+.school-info h3 {
+ font-size: 14px;
+ margin: 8px 0;
+}
+
+.school-info p {
+ font-size: 10px;
+ margin: 5px 0;
 }
 
 .student-info {
-  margin: 20px 0;
+ margin: 10px 0;
+ font-size: 10px;
 }
 
 .info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+ display: flex;
+ justify-content: space-between;
+ margin-bottom: 8px;
 }
 
 .schedule-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-  font-size: 11px;
+ width: 100%;
+ border-collapse: collapse;
+ margin: 10px 0;
+ font-size: 9px;
 }
 
 .schedule-table th,
 .schedule-table td {
-  border: 1px solid #000;
-  padding: 6px;
-  vertical-align: middle;
+ border: 1px solid #000;
+ padding: 4px;
+ vertical-align: middle;
+}
+
+.text-center {
+ text-align: center;
+}
+
+.text-right {
+ text-align: right;
 }
 
 .total-row {
-  font-weight: bold;
+ font-weight: bold;
 }
 
 .signature-section {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 50px;
+ display: flex;
+ justify-content: space-between;
+ margin-top: 30px;
 }
 
 .signature-block {
-  width: 200px;
-  text-align: center;
+ width: 180px;
+ text-align: center;
+ font-size: 9px;
 }
 
 .signature-line {
-  border-bottom: 1px solid #000;
-  margin-bottom: 5px;
+ border-bottom: 1px solid #000;
+ margin-bottom: 5px;
 }
 
 @media print {
   .registration-form {
     padding: 0;
+  }
+  
+  @page {
+    margin-top: 0.1in;
+    margin: 0;
+    size: letter;
   }
 }
 </style>

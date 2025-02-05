@@ -453,7 +453,7 @@
                       </v-card-text>
                     </v-card>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="enrollmentForm.subjects"
                       :items="subjects"
                       :loading="loading"
@@ -514,7 +514,7 @@
                           </v-list-item-content>
                         </v-list-item>
                       </template>
-                    </v-select>
+                    </v-autocomplete>
 
                     <!-- Subject List Card -->
                     <v-card class="mt-4" outlined>

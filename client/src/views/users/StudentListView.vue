@@ -1,5 +1,20 @@
 <template>
   <v-container>
+    <!-- Student Type Tabs -->
+    <v-card class="mb-4">
+      <v-tabs
+        v-model="selectedTab"
+        background-color="primary"
+        dark
+        @change="handleTabChange"
+      >
+        <v-tab value="all">All Students</v-tab>
+        <v-tab value="regular">Regular Students</v-tab>
+        <v-tab value="irregular">Irregular Students</v-tab>
+      </v-tabs>
+    </v-card>
+
+    <!-- Search and Add Card -->
     <v-card class="mb-4">
       <v-row align="center" no-gutters>
         <v-col cols="12">
@@ -18,81 +33,6 @@
             ></v-text-field>
 
             <div class="d-flex">
-              <!-- <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    outlined
-                    color="primary"
-                    class="mr-2"
-                  >
-                    <v-icon left>mdi-filter</v-icon>
-                    Filter
-                  </v-btn>
-                </template>
-                <v-card min-width="300" class="pa-4">
-                  <v-select
-                    v-model="filters.course"
-                    label="Course"
-                    clearable
-                    dense
-                    outlined
-                    class="mb-2"
-                  ></v-select>
-                  <v-select
-                    v-model="filters.year"
-                    label="Year Level"
-                    :items="[1, 2, 3, 4]"
-                    clearable
-                    dense
-                    outlined
-                    class="mb-2"
-                  ></v-select>
-                  <v-select
-                    v-model="filters.section"
-                    label="Section"
-                    :items="['A', 'B', 'C']"
-                    clearable
-                    dense
-                    outlined
-                  ></v-select>
-                  <div class="d-flex justify-end mt-4">
-                    <v-btn text @click="resetFilters" class="mr-2">Reset</v-btn>
-                    <v-btn color="primary" @click="applyFilters">Apply</v-btn>
-                  </div>
-                </v-card>
-              </v-menu> -->
-
-              <!-- <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    outlined
-                    color="primary"
-                    class="mr-2"
-                  >
-                    <v-icon left>mdi-download</v-icon>
-                    Download
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-list-item @click="downloadExcel">
-                    <v-list-item-icon>
-                      <v-icon>mdi-file-excel</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Excel</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="downloadPDF">
-                    <v-list-item-icon>
-                      <v-icon>mdi-file-pdf</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>PDF</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu> -->
-
               <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn color="primary" v-bind="attrs" v-on="on">
@@ -121,11 +61,14 @@
       </v-row>
     </v-card>
 
+    <!-- Data Table -->
     <v-card>
       <v-data-table
         :headers="headers"
         :items="filteredStudents"
         :loading="loading"
+        :items-per-page="options.itemsPerPage"
+        @update:options="handleTableUpdate"
       >
         <template v-slot:item.user.fullName="{ item }">
           <div class="d-flex align-center py-2">
@@ -140,8 +83,21 @@
                 {{ item.name.middleName ? item.name.middleName[0] + "." : "" }}
                 {{ item.name.nameExtension || "" }}
               </div>
+              <div class="caption text-medium-emphasis">
+                {{ item.studentId }}
+              </div>
             </div>
           </div>
+        </template>
+
+        <template v-slot:item.studentType="{ item }">
+          <v-chip
+            :color="item.enrollments?.[0]?.studentType === 'regular' ? 'success' : 'warning'"
+            small
+            class="text-capitalize"
+          >
+            {{ item.enrollments?.[0]?.studentType || 'N/A' }}
+          </v-chip>
         </template>
 
         <template v-slot:item.course="{ item }">
@@ -158,6 +114,18 @@
           >
             {{ item.enrollments?.[0]?.enrollmentStatus || "pending" }}
           </v-chip>
+        </template>
+
+        <template v-slot:item.studentStatus="{ item }">
+          <template v-if="item.enrollments?.[0]?.studentStatus">
+            <v-chip
+              :color="getStatusColor(item.enrollments[0].studentStatus)"
+              small
+              class="text-capitalize"
+            >
+              {{ item.enrollments[0].studentStatus }}
+            </v-chip>
+          </template>
         </template>
 
         <template v-slot:item.actions="{ item }">
@@ -185,11 +153,10 @@
           </div>
         </template>
 
+        <!-- No Data Template -->
         <template v-slot:no-data>
           <div class="pa-8 text-center">
-            <v-icon size="64" color="grey lighten-1"
-              >mdi-account-school-outline</v-icon
-            >
+            <v-icon size="64" color="grey lighten-1">mdi-account-school-outline</v-icon>
             <div class="text-h6 grey--text text--darken-1 mt-4">
               No students found
             </div>
@@ -199,6 +166,7 @@
           </div>
         </template>
 
+        <!-- Loading Template -->
         <template v-slot:loading>
           <div class="pa-8 text-center">
             <v-progress-circular
@@ -236,13 +204,12 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" @click="handleDelete" :loading="loading"
-            >Delete</v-btn
-          >
+          <v-btn color="error" @click="handleDelete" :loading="loading">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
+    <!-- Snackbar -->
     <v-snackbar
       v-model="snackbar"
       :color="snackbarColor"
@@ -267,6 +234,7 @@ export default {
   name: "StudentListView",
 
   data: () => ({
+    selectedTab: 'all',
     search: "",
     filters: {
       course: null,
@@ -278,6 +246,8 @@ export default {
       page: 1,
       itemsPerPage: 10,
       search: "",
+      sortBy: ['user.fullName'],
+      sortDesc: [false],
     },
     headers: [
       {
@@ -286,8 +256,8 @@ export default {
         sortable: true,
       },
       {
-        text: "Student ID",
-        value: "studentId",
+        text: "Student Type",
+        value: "studentType",
         sortable: true,
       },
       {
@@ -296,8 +266,13 @@ export default {
         sortable: true,
       },
       {
-        text: "Status",
+        text: "Enrollment Status",
         value: "enrollmentStatus",
+        sortable: true,
+      },
+      {
+        text: "Student Status",
+        value: "studentStatus",
         sortable: true,
       },
       {
@@ -307,7 +282,6 @@ export default {
         align: "end",
       },
     ],
-
     loading: false,
     studentToDelete: null,
     snackbar: false,
@@ -320,20 +294,48 @@ export default {
     ...mapGetters("students", ["filteredStudent"]),
 
     filteredStudents() {
-      return this.$store.getters["students/filteredStudent"](this.search);
+      return this.filterStudentsByType();
     },
   },
 
   methods: {
     ...mapActions("students", ["fetchStudents", "deleteStudent"]),
 
+    handleTabChange() {
+      this.filterStudentsByType();
+    },
+
+    filterStudentsByType() {
+      let filteredStudents = this.$store.getters["students/filteredStudent"](this.search);
+      
+      switch (this.selectedTab) {
+        case 1:
+          return filteredStudents.filter(student => 
+            student.enrollments?.[0]?.studentStatus === 'regular'
+          );
+        case 2:
+          return filteredStudents.filter(student => 
+            student.enrollments?.[0]?.studentStatus === 'irregular'
+          );
+        default:
+          return filteredStudents;
+      }
+    },
+
     getStatusColor(status) {
       const colors = {
         pending: "warning",
         evaluated: "info",
         enrolled: "success",
+        regular: "success",
+        irregular: "warning"
       };
       return colors[status] || "warning";
+    },
+
+    handleTableUpdate(options) {
+      this.options = options;
+      this.fetchStudents();
     },
 
     resetFilters() {
@@ -342,20 +344,8 @@ export default {
         year: null,
         section: null,
       };
+      this.selectedTab = 'all';
       this.fetchStudents();
-    },
-
-    applyFilters() {
-      this.options.page = 1;
-      this.fetchStudents({ ...this.options, filters: this.filters });
-    },
-
-    downloadExcel() {
-      // Implement Excel download
-    },
-
-    downloadPDF() {
-      // Implement PDF download
     },
 
     confirmDelete(item) {
@@ -384,11 +374,6 @@ export default {
       this.snackbarText = text;
       this.snackbarColor = color;
       this.snackbar = true;
-    },
-
-    async handleSearch() {
-      this.options.page = 1;
-      await this.fetchStudents();
     },
 
     selectStudent(item) {

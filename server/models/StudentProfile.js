@@ -93,6 +93,9 @@ const StudentProfileSchema = new Schema(
     image: {
       type: String,
     },
+    studentStatus: {
+      type: String,
+    }
   },
   {
     timestamps: true,
