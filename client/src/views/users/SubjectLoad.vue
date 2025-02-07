@@ -85,21 +85,21 @@
           <!-- Subject Selection Table -->
           <v-col cols="12">
             <v-data-table
-              v-model="selectedSubjectRow"
-              :headers="subjectHeaders"
-              :items="availableSubjects"
-              :search="searchQuery"
-              item-key="_id"
-              show-select
-              single-select
-              :loading="loading"
-              :no-data-text="noDataText"
-              dense
-              class="elevation-1"
-              :disabled="isEditing"
-              @click:row="selectSubject"
-              :items-per-page="5"
-            >
+                v-model="selectedSubjectRow"
+                :headers="subjectHeaders"
+                :items="availableSubjects"
+                :search="searchQuery"
+                item-key="_id"
+                show-select
+                single-select
+                :loading="loading"
+                :no-data-text="noDataText"
+                dense
+                class="elevation-1"
+                :disabled="isEditing"
+                @item-selected="handleSelection"
+                :items-per-page="5"
+              >
               <template v-slot:top>
                 <v-toolbar flat>
                   <v-toolbar-title>Select Subject</v-toolbar-title>
@@ -503,10 +503,20 @@ export default {
       this.selectedCourses = [];
     },
 
-    selectSubject(item) {
-      console.log(item);
-      this.newLoad.subject = item._id;
-      this.selectedSubjectRow = [item];
+    // selectSubject(item) {
+    //   console.log(item);
+    //   this.newLoad.subject = item._id;
+    //   this.selectedSubjectRow = [item];
+    // },
+
+    handleSelection({ item, value }) {
+      if (value) {
+        this.newLoad.subject = item._id;
+        this.selectedSubjectRow = [item];
+      } else {
+        this.newLoad.subject = null;
+        this.selectedSubjectRow = [];
+      }
     },
 
     addScheduleSlot() {

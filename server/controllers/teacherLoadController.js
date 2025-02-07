@@ -166,91 +166,100 @@ exports.deleteTeacherLoad = catchAsync(async (req, res) => {
 });
 
 exports.checkScheduleConflicts = catchAsync(async (req, res) => {
-  const { schedule, skipSubjectId, professorId } = req.body;
+  try {
+    const { schedule, skipSubjectId, professorId } = req.body;
 
-  const teacherLoads = await teacherLoadService.getAllTeacherLoads({
-    status: "active",
-    populate: "professor",
-  });
+    const teacherLoads = await teacherLoadService.getAllTeacherLoads({
+      status: "active",
+      populate: "professor",
+    });
 
-  if (!professorId) {
-    throw new Error("Professor ID is required");
-  }
+    if (!professorId) {
+      throw new Error("Professor ID is required");
+    }
 
-  for (const teacherLoad of teacherLoads) {
-    if (!teacherLoad?.professor?._id) continue;
+    for (const teacherLoad of teacherLoads) {
+      if (!teacherLoad?.professor?._id) continue;
 
-    const isSameProfessor =
-      teacherLoad.professor._id.toString() === professorId.toString();
+      const isSameProfessor =
+        teacherLoad.professor._id.toString() === professorId.toString();
 
-    if (!Array.isArray(teacherLoad.subjects)) continue;
+      if (!Array.isArray(teacherLoad.subjects)) continue;
 
-    for (const subject of teacherLoad.subjects) {
-      if (!subject?._id) continue;
-      if (
-        skipSubjectId &&
-        subject._id.toString() === skipSubjectId.toString()
-      ) {
-        continue;
-      }
-
-      if (!Array.isArray(subject.schedule)) continue;
-
-      for (const existingSchedule of subject.schedule) {
+      for (const subject of teacherLoad.subjects) {
+        if (!subject?._id) continue;
         if (
-          !existingSchedule?.day ||
-          !existingSchedule?.timeStart ||
-          !existingSchedule?.timeEnd
-        )
+          skipSubjectId &&
+          subject._id.toString() === skipSubjectId.toString()
+        ) {
           continue;
+        }
 
-        for (const newTime of schedule) {
-          if (!newTime?.day || !newTime?.timeStart || !newTime?.timeEnd)
+        if (!Array.isArray(subject.schedule)) continue;
+
+        for (const existingSchedule of subject.schedule) {
+          if (
+            !existingSchedule?.day ||
+            !existingSchedule?.timeStart ||
+            !existingSchedule?.timeEnd
+          )
             continue;
 
-          if (
-            existingSchedule.day === newTime.day &&
-            (isSameProfessor ||
-              (!isSameProfessor && existingSchedule.room === newTime.room))
-          ) {
-            const existingStart = new Date(
-              `1970-01-01T${existingSchedule.timeStart}`
-            );
-            const existingEnd = new Date(
-              `1970-01-01T${existingSchedule.timeEnd}`
-            );
-            const newStart = new Date(`1970-01-01T${newTime.timeStart}`);
-            const newEnd = new Date(`1970-01-01T${newTime.timeEnd}`);
+          for (const newTime of schedule) {
+            if (!newTime?.day || !newTime?.timeStart || !newTime?.timeEnd)
+              continue;
 
             if (
-              (newStart >= existingStart && newStart < existingEnd) ||
-              (newEnd > existingStart && newEnd <= existingEnd) ||
-              (newStart <= existingStart && newEnd >= existingEnd)
+              existingSchedule.day === newTime.day &&
+              (isSameProfessor ||
+                (!isSameProfessor && existingSchedule.room === newTime.room))
             ) {
-              return res.status(200).json({
-                status: "success",
-                data: {
-                  hasConflict: true,
-                  conflictDetails: {
-                    day: existingSchedule.day,
-                    existingTime: `${existingSchedule.timeStart}-${existingSchedule.timeEnd}`,
-                    room: existingSchedule.room,
-                    professor: teacherLoad.professor,
-                    isSameProfessor,
+              const existingStart = new Date(
+                `1970-01-01T${existingSchedule.timeStart}`
+              );
+              const existingEnd = new Date(
+                `1970-01-01T${existingSchedule.timeEnd}`
+              );
+              const newStart = new Date(`1970-01-01T${newTime.timeStart}`);
+              const newEnd = new Date(`1970-01-01T${newTime.timeEnd}`);
+
+              if (
+                (newStart >= existingStart && newStart < existingEnd) ||
+                (newEnd > existingStart && newEnd <= existingEnd) ||
+                (newStart <= existingStart && newEnd >= existingEnd)
+              ) {
+                return res.status(200).json({
+                  status: "success",
+                  data: {
+                    hasConflict: true,
+                    conflictDetails: {
+                      day: existingSchedule.day,
+                      existingTime: `${existingSchedule.timeStart}-${existingSchedule.timeEnd}`,
+                      room: existingSchedule.room,
+                      professor: teacherLoad.professor,
+                      isSameProfessor,
+                    },
                   },
-                },
-              });
+                });
+              }
             }
           }
         }
       }
     }
-  }
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      hasConflict: false,
-    },
-  });
+    res.status(200).json({
+      status: "success",
+      data: {
+        hasConflict: false,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking schedule conflicts:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Server error",
+      error: error.message,
+    });
+  }
 });
