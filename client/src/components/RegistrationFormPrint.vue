@@ -67,7 +67,6 @@
         </tbody>
       </table>
 
-      <!-- Signature Section -->
       <div class="signature-section">
         <div class="signature-block">
           <div class="signature-line"></div>
@@ -157,7 +156,7 @@ export default {
 
 <style scoped>
 .registration-form {
-  padding: 0.1in 0 0 0; /* Reduced from 0.25in to 0.1in */
+  padding: 0.1in 0 0 0; 
   max-width: 8.5in;
   margin: 0 auto;
   background: white;

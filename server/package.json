@@ -1,7 +1,7 @@
 {
-  "name": "git-attendance-app",
+  "name": "git-enrollment-app",
   "version": "1.0.0",
-  "description": "Git Attendance App",
+  "description": "Git Enrollment App",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
